@@ -4,7 +4,7 @@ import { ProjectCard } from "@/components/ProjectCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Users, Laptop } from "lucide-react";
+import { Search, Users, Laptop, User } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 

@@ -3,7 +3,7 @@ import { Header } from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/ProjectCard";
-import { Edit, GitHub, Instagram, Twitter } from "lucide-react";
+import { Edit, Github, Instagram, Twitter, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Mock user data
@@ -82,7 +82,7 @@ const ProfilePage = () => {
                   <h3 className="text-lg font-semibold mb-2">Links</h3>
                   <div className="flex flex-col gap-2">
                     <a href={`https://${MOCK_USER.links.github}`} className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
-                      <GitHub className="w-4 h-4 mr-2" />
+                      <Github className="w-4 h-4 mr-2" />
                       {MOCK_USER.links.github}
                     </a>
                     <a href={`https://${MOCK_USER.links.instagram}`} className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
