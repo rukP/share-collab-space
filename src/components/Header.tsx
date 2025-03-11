@@ -1,17 +1,20 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Users, User, Search } from "lucide-react";
+import { PlusCircle, User, Menu, X } from "lucide-react";
+import { useState } from "react";
 
 export const Header = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <header className="border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+    <header className="border-b border-border/40 sticky top-0 bg-background/95 backdrop-blur-sm z-10">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-primary">RCA Projects</h1>
+          <h1 className="text-2xl font-bold text-gradient">RCA Projects</h1>
         </Link>
         
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-8">
           <Link to="/projects" className="text-muted-foreground hover:text-foreground transition-colors">
             Explore
           </Link>
@@ -23,21 +26,71 @@ export const Header = () => {
           </Link>
         </div>
         
-        <nav className="flex items-center gap-4">
+        <nav className="hidden md:flex items-center gap-4">
           <Link to="/profile">
-            <Button variant="ghost" size="sm">
+            <Button variant="outline" size="sm" className="rounded-full">
               <User className="w-4 h-4 mr-2" />
               Profile
             </Button>
           </Link>
           <Link to="/share-project">
-            <Button size="sm">
+            <Button size="sm" className="rounded-full">
               <PlusCircle className="w-4 h-4 mr-2" />
               Share Project
             </Button>
           </Link>
         </nav>
+
+        {/* Mobile menu button */}
+        <button 
+          className="md:hidden text-foreground"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-card py-4 px-4 border-b border-border/40">
+          <nav className="flex flex-col space-y-4">
+            <Link 
+              to="/projects" 
+              className="text-foreground py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Explore
+            </Link>
+            <Link 
+              to="/teams" 
+              className="text-foreground py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Teams
+            </Link>
+            <Link 
+              to="/search" 
+              className="text-foreground py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Search
+            </Link>
+            <Link 
+              to="/profile" 
+              className="text-foreground py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Profile
+            </Link>
+            <Link to="/share-project" onClick={() => setMobileMenuOpen(false)}>
+              <Button className="w-full justify-center rounded-full">
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Share Project
+              </Button>
+            </Link>
+          </nav>
+        </div>
+      )}
     </header>
   );
 };
