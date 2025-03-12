@@ -1,4 +1,3 @@
-
 // Mock data for search functionality
 export const MOCK_PROJECTS = [
   {
@@ -33,14 +32,16 @@ export const MOCK_TEAMS = [
     name: "Design Innovators",
     description: "A team focused on experimental design approaches across various media",
     members: 4,
-    openPositions: 2
+    openPositions: 2,
+    createdAt: "2024-02-15"
   },
   {
     id: 2,
     name: "Digital Fabrication Group",
     description: "Exploring the intersection of digital design and physical fabrication techniques",
     members: 3,
-    openPositions: 1
+    openPositions: 1,
+    createdAt: "2024-02-10"
   }
 ];
 
