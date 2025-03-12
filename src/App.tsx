@@ -16,6 +16,8 @@ import ResourcesPage from "./pages/ResourcesPage";
 import TeamDetailsPage from "./pages/TeamDetailsPage";
 import ProjectDetailsPage from "./pages/ProjectDetailsPage";
 import PersonDetailsPage from "./pages/PersonDetailsPage";
+import AddProfilePage from "./pages/AddProfilePage";
+import CreateTeamPage from "./pages/CreateTeamPage";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,8 @@ const App = () => (
           <Route path="/search" element={<SearchPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/add-profile" element={<AddProfilePage />} />
+          <Route path="/create-team" element={<CreateTeamPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

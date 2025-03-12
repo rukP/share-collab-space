@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, User, Menu, X, Calendar, FileText, Search } from "lucide-react";
+import { PlusCircle, User, Menu, X, Calendar, FileText, Search, Users, UserPlus } from "lucide-react";
 import { useState } from "react";
 
 export const Header = () => {
@@ -26,11 +26,17 @@ export const Header = () => {
           </Link>
         </div>
         
-        <nav className="hidden md:flex items-center gap-4">
+        <nav className="hidden md:flex items-center gap-3">
           <Link to="/profile">
             <Button variant="outline" size="sm" className="rounded-full border-white/10 bg-white/5 backdrop-blur-sm hover:bg-white/10">
               <User className="w-4 h-4 mr-2" />
               Profile
+            </Button>
+          </Link>
+          <Link to="/create-team">
+            <Button variant="outline" size="sm" className="rounded-full border-white/10 bg-white/5 backdrop-blur-sm hover:bg-white/10">
+              <Users className="w-4 h-4 mr-2" />
+              Create Team
             </Button>
           </Link>
           <Link to="/share-project">
@@ -81,6 +87,20 @@ export const Header = () => {
               onClick={() => setMobileMenuOpen(false)}
             >
               Profile
+            </Link>
+            <Link 
+              to="/add-profile" 
+              className="text-foreground py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Complete Profile
+            </Link>
+            <Link 
+              to="/create-team" 
+              className="text-foreground py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Create Team
             </Link>
             <Link to="/share-project" onClick={() => setMobileMenuOpen(false)}>
               <Button className="w-full justify-center rounded-full shadow-lg shadow-primary/20">
