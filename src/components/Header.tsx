@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, User, Menu, X } from "lucide-react";
+import { PlusCircle, User, Menu, X, Calendar, FileText, Search } from "lucide-react";
 import { useState } from "react";
 
 export const Header = () => {

@@ -11,6 +11,8 @@ import TeamsPage from "./pages/TeamsPage";
 import ProfilePage from "./pages/ProfilePage";
 import ShareProjectPage from "./pages/ShareProjectPage";
 import SearchPage from "./pages/SearchPage";
+import EventsPage from "./pages/EventsPage";
+import ResourcesPage from "./pages/ResourcesPage";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,8 @@ const App = () => (
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/share-project" element={<ShareProjectPage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/resources" element={<ResourcesPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
