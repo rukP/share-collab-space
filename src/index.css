@@ -5,25 +5,25 @@
  
 @layer base {
   :root {
-    --background: 220 20% 10%;
+    --background: 222 47% 11%;
     --foreground: 210 40% 98%;
-    --card: 220 20% 13%;
+    --card: 222 47% 14%;
     --card-foreground: 210 40% 98%;
-    --popover: 220 20% 13%;
+    --popover: 222 47% 14%;
     --popover-foreground: 210 40% 98%;
-    --primary: 199 89% 48%;
+    --primary: 217 91% 60%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 217 19% 27%;
+    --secondary: 222 47% 20%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217 19% 18%;
+    --muted: 222 47% 16%;
     --muted-foreground: 215 20% 75%;
-    --accent: 255 70% 65%;
+    --accent: 250 95% 76%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217 19% 18%;
-    --input: 217 19% 18%;
-    --ring: 199 89% 48%;
+    --border: 222 47% 18%;
+    --input: 222 47% 18%;
+    --ring: 217 91% 60%;
     --radius: 0.75rem;
   }
 }
@@ -38,21 +38,37 @@
 }
 
 .project-card {
-  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
 }
 
 .card-hover {
-  @apply transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1;
+  @apply transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:-translate-y-1;
 }
 
 .bg-gradient-hero {
-  @apply bg-gradient-to-b from-primary/10 via-accent/5 to-background;
+  @apply bg-gradient-to-b from-primary/20 via-accent/10 to-background;
 }
 
 .text-gradient {
-  @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-bold;
 }
 
 .glass-card {
-  @apply bg-card/80 backdrop-blur-md border border-white/10;
+  @apply bg-card/80 backdrop-blur-md border border-white/10 shadow-lg;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
