@@ -13,6 +13,9 @@ import ShareProjectPage from "./pages/ShareProjectPage";
 import SearchPage from "./pages/SearchPage";
 import EventsPage from "./pages/EventsPage";
 import ResourcesPage from "./pages/ResourcesPage";
+import TeamDetailsPage from "./pages/TeamDetailsPage";
+import ProjectDetailsPage from "./pages/ProjectDetailsPage";
+import PersonDetailsPage from "./pages/PersonDetailsPage";
 
 const queryClient = new QueryClient();
 
@@ -25,8 +28,11 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/projects/:id" element={<ProjectDetailsPage />} />
           <Route path="/teams" element={<TeamsPage />} />
+          <Route path="/teams/:id" element={<TeamDetailsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/:id" element={<PersonDetailsPage />} />
           <Route path="/share-project" element={<ShareProjectPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/events" element={<EventsPage />} />

@@ -2,6 +2,7 @@
 import { Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 interface TeamCardProps {
   id: number;
@@ -22,7 +23,9 @@ export const TeamCard = ({ id, name, description, members }: TeamCardProps) => {
             <Users className="w-4 h-4" />
             {members} members
           </div>
-          <Button size="sm">View Team</Button>
+          <Link to={`/teams/${id}`}>
+            <Button size="sm">View Team</Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

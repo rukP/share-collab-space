@@ -1,6 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 interface UserCardProps {
   id: number;
@@ -21,7 +22,9 @@ export const UserCard = ({ id, name, course, avatar }: UserCardProps) => {
         <div>
           <h3 className="text-lg font-semibold">{name}</h3>
           <p className="text-muted-foreground text-sm">{course}</p>
-          <Button variant="outline" size="sm" className="mt-2">View Profile</Button>
+          <Link to={`/profile/${id}`}>
+            <Button variant="outline" size="sm" className="mt-2">View Profile</Button>
+          </Link>
         </div>
       </CardContent>
     </Card>
