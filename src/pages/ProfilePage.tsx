@@ -7,6 +7,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { UserPlus } from "lucide-react";
+import { MOCK_PROJECTS, MOCK_TEAMS } from "@/data/mockData";
+
+// Mock user data for the profile sidebar
+const mockUser = {
+  avatar: "https://picsum.photos/seed/profile/300/300",
+  name: "Jane Cooper",
+  course: "Visual Communication",
+  year: 3,
+  bio: "Digital artist and designer with a passion for interactive experiences and experimental typography. Currently working on projects that explore the intersection of technology and traditional art forms.",
+  links: {
+    github: "github.com/janecooper",
+    instagram: "instagram.com/janecooperdesign",
+    twitter: "twitter.com/janecooper"
+  }
+};
 
 const ProfilePage = () => {
   return (
@@ -25,7 +40,7 @@ const ProfilePage = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
-            <ProfileSidebar />
+            <ProfileSidebar user={mockUser} />
           </div>
           
           <div className="lg:col-span-3">
@@ -35,10 +50,10 @@ const ProfilePage = () => {
                 <TabsTrigger value="teams">Teams</TabsTrigger>
               </TabsList>
               <TabsContent value="projects">
-                <ProfileProjects />
+                <ProfileProjects projects={MOCK_PROJECTS} />
               </TabsContent>
               <TabsContent value="teams">
-                <ProfileTeams />
+                <ProfileTeams teams={MOCK_TEAMS} />
               </TabsContent>
             </Tabs>
           </div>
