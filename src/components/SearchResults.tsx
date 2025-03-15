@@ -40,7 +40,7 @@ export const SearchResults = ({ searchQuery, searchType }: SearchResultsProps) =
               imageUrl={project.imageUrl}
               likes={project.likes}
               author={project.author}
-              status={project.status as "open" | "closed" | "completed"}
+              status={(project.status as "open" | "closed" | "completed") || "open"}
             />
           ))}
           {filteredProjects.length === 0 && (

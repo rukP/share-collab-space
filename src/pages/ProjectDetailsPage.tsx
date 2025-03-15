@@ -21,7 +21,7 @@ interface ProjectData {
   date: string;
   team: string;
   teamId: number;
-  status?: "open" | "closed" | "completed";
+  status: "open" | "closed" | "completed"; // Fixed: Add status property to the interface
   comments: {
     id: number;
     author: string;
@@ -50,7 +50,7 @@ const PROJECT_DATA: ProjectData = {
   date: "March 15, 2023",
   team: "Design Innovators",
   teamId: 1,
-  status: "open",
+  status: "open", // Fixed: Add status property
   comments: [
     {
       id: 1,
@@ -95,7 +95,7 @@ const ProjectDetailsPage = () => {
     if (mockProject) {
       setProject(prevProject => ({
         ...prevProject,
-        status: mockProject.status as "open" | "closed" | "completed" || "open"
+        status: (mockProject.status as "open" | "closed" | "completed") || "open"
       }));
     }
   }, [id]);
@@ -121,7 +121,7 @@ const ProjectDetailsPage = () => {
             authorAvatar: project.authorAvatar,
             date: project.date,
             team: project.team,
-            status: project.status
+            status: project.status // Now this property exists
           }}
           likes={{
             count: likesCount,
