@@ -1,9 +1,7 @@
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Heart, Share2, UserPlus, CheckCircle, XCircle, Clock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { CheckCircle, XCircle, Clock, UserPlus } from "lucide-react";
+import { ProjectActions } from "@/components/project/ProjectActions";
 
 interface ProjectHeaderProps {
   id: string | undefined;
@@ -23,18 +21,6 @@ interface ProjectHeaderProps {
 }
 
 export const ProjectHeader = ({ id, project, likes }: ProjectHeaderProps) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      toast({
-        title: "Link Copied",
-        description: "Project link copied to clipboard!"
-      });
-    });
-  };
-
   const getStatusBadge = () => {
     const status = project.status || "open";
     
@@ -96,32 +82,13 @@ export const ProjectHeader = ({ id, project, likes }: ProjectHeaderProps) => {
         />
       </div>
       
-      <div className="flex flex-wrap gap-4 mb-8">
-        <Button 
-          variant="outline" 
-          onClick={likes.onLike} 
-          className={likes.isLiked ? "text-accent border-accent" : ""}
-        >
-          <Heart className={`w-4 h-4 mr-2 ${likes.isLiked ? "fill-accent" : ""}`} />
-          {likes.count} Likes
-        </Button>
-        
-        <Button variant="outline" onClick={handleShare}>
-          <Share2 className="w-4 h-4 mr-2" />
-          Share
-        </Button>
-        
-        {(project.status === "open") && (
-          <Button 
-            variant="default"
-            className="bg-gradient-to-r from-primary to-purple-500 hover:opacity-90"
-            onClick={() => navigate(`/projects/${id}/join`)}
-          >
-            <UserPlus className="w-4 h-4 mr-2" />
-            Request to Join
-          </Button>
-        )}
-      </div>
+      <ProjectActions
+        projectId={id || ""}
+        likes={likes}
+        status={project.status}
+        variant="grouped"
+        className="mb-8"
+      />
     </div>
   );
 };

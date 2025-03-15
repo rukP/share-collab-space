@@ -1,10 +1,10 @@
 
-import { Heart, Users, CheckCircle, XCircle, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ProjectActions } from "@/components/project/ProjectActions";
 
 interface ProjectCardProps {
   id: number;
@@ -20,10 +20,7 @@ export const ProjectCard = ({ id, title, description, imageUrl, likes, author, s
   const [likesCount, setLikesCount] = useState(likes);
   const [isLiked, setIsLiked] = useState(false);
 
-  const handleLike = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent link navigation when clicking the like button
-    e.stopPropagation(); // Stop event propagation
-    
+  const handleLike = () => {
     if (isLiked) {
       setLikesCount(prev => prev - 1);
     } else {
@@ -75,30 +72,18 @@ export const ProjectCard = ({ id, title, description, imageUrl, likes, author, s
         </CardContent>
         <CardFooter className="p-4 flex justify-between items-center mt-auto">
           <div className="text-sm text-muted-foreground">By {author}</div>
-          <div className="flex gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={handleLike}
-              className={isLiked ? "text-primary" : ""}
-            >
-              <Heart className="w-4 h-4 mr-1" />
-              {likesCount}
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.location.href = `/projects/${id}/join`;
-              }}
-              disabled={status !== "open"}
-            >
-              <Users className="w-4 h-4 mr-1" />
-              Team up
-            </Button>
-          </div>
+          <ProjectActions
+            projectId={id}
+            likes={{
+              count: likesCount,
+              isLiked: isLiked,
+              onLike: handleLike
+            }}
+            status={status}
+            size="sm"
+            variant="separated"
+            showLabels={true}
+          />
         </CardFooter>
       </Card>
     </Link>
