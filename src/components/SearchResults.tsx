@@ -32,7 +32,16 @@ export const SearchResults = ({ searchQuery, searchType }: SearchResultsProps) =
       <TabsContent value="projects">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
-            <ProjectCard key={project.id} {...project} />
+            <ProjectCard 
+              key={project.id}
+              id={project.id}
+              title={project.title}
+              description={project.description}
+              imageUrl={project.imageUrl}
+              likes={project.likes}
+              author={project.author}
+              status={project.status as "open" | "closed" | "completed"}
+            />
           ))}
           {filteredProjects.length === 0 && (
             <div className="col-span-3 text-center py-12 text-muted-foreground">
