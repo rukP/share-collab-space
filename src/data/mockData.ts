@@ -6,7 +6,12 @@ export const MOCK_PROJECTS = [
     description: "A dynamic light installation responding to viewer movement",
     imageUrl: "https://picsum.photos/seed/1/800/600",
     likes: 24,
-    author: "Alice Chen"
+    author: "Alice Chen",
+    status: "open", // open, closed, or completed
+    requests: [
+      { id: 1, userId: 2, status: "pending" }, // pending, accepted, or rejected
+      { id: 2, userId: 3, status: "accepted" }
+    ]
   },
   {
     id: 2,
@@ -14,7 +19,9 @@ export const MOCK_PROJECTS = [
     description: "Exploring eco-friendly materials in contemporary fashion",
     imageUrl: "https://picsum.photos/seed/2/800/600",
     likes: 18,
-    author: "James Wilson"
+    author: "James Wilson",
+    status: "closed", // closed for new members
+    requests: []
   },
   {
     id: 3,
@@ -22,7 +29,9 @@ export const MOCK_PROJECTS = [
     description: "Playing with variable fonts and animation",
     imageUrl: "https://picsum.photos/seed/3/800/600",
     likes: 32,
-    author: "Sarah Park"
+    author: "Sarah Park",
+    status: "completed", // project is completed
+    requests: []
   }
 ];
 
@@ -63,5 +72,34 @@ export const MOCK_USERS = [
     name: "Sarah Park",
     course: "Animation",
     avatar: "https://picsum.photos/seed/user3/300/300"
+  }
+];
+
+// Mock project request
+export interface ProjectRequest {
+  id: number;
+  userId: number;
+  projectId: number;
+  message: string;
+  status: "pending" | "accepted" | "rejected";
+  createdAt: string;
+}
+
+export const MOCK_REQUESTS: ProjectRequest[] = [
+  {
+    id: 1,
+    userId: 2,
+    projectId: 1,
+    message: "I'd love to contribute my programming skills to this installation!",
+    status: "pending",
+    createdAt: "2024-04-02"
+  },
+  {
+    id: 2, 
+    userId: 3,
+    projectId: 1,
+    message: "I have experience with lighting design and would like to join.",
+    status: "accepted",
+    createdAt: "2024-04-01"
   }
 ];

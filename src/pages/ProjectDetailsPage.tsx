@@ -1,13 +1,25 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Share2, MessageSquare, Calendar, Tag, Users } from "lucide-react";
+import { 
+  Heart, 
+  Share2, 
+  MessageSquare, 
+  Calendar, 
+  Tag, 
+  Users, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  UserPlus 
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { MOCK_PROJECTS, MOCK_USERS } from "@/data/mockData";
 
-// Mock project data - in a real app this would come from an API
 const PROJECT_DATA = {
   id: 1,
   title: "Interactive Art Installation",
@@ -55,16 +67,22 @@ const PROJECT_DATA = {
 
 const ProjectDetailsPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [project, setProject] = useState(PROJECT_DATA);
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(PROJECT_DATA.likes);
   const [comment, setComment] = useState("");
 
-  // In a real app, fetch project data based on ID
   useEffect(() => {
-    // This would be an API call in a real app
     console.log(`Fetching project with ID: ${id}`);
-    // For now, we'll just use our mock data
+    const mockProject = MOCK_PROJECTS.find(p => p.id.toString() === id);
+    if (mockProject) {
+      setProject(prevProject => ({
+        ...prevProject,
+        status: mockProject.status || "open"
+      }));
+    }
   }, [id]);
 
   const handleLike = () => {
@@ -78,27 +96,63 @@ const ProjectDetailsPage = () => {
 
   const handleComment = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would post to an API
     if (comment.trim()) {
-      alert("Comment submitted! (This would be saved in a real app)");
+      toast({
+        title: "Comment Posted",
+        description: "Your comment has been added to the project."
+      });
       setComment("");
     }
   };
 
   const handleShare = () => {
-    // In a real app, this might open a share dialog
     navigator.clipboard.writeText(window.location.href).then(() => {
-      alert("Link copied to clipboard!");
+      toast({
+        title: "Link Copied",
+        description: "Project link copied to clipboard!"
+      });
     });
+  };
+
+  const getStatusBadge = () => {
+    const status = project.status || "open";
+    
+    switch (status) {
+      case "open":
+        return (
+          <Badge className="bg-green-100 text-green-800 border-green-300 ml-2">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Open to Join
+          </Badge>
+        );
+      case "closed":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 ml-2">
+            <XCircle className="w-3 h-3 mr-1" />
+            Team Full
+          </Badge>
+        );
+      case "completed":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 border-blue-300 ml-2">
+            <Clock className="w-3 h-3 mr-1" />
+            Completed
+          </Badge>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-8">
-        {/* Project Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
+          <div className="flex items-center">
+            <h1 className="text-3xl font-bold">{project.title}</h1>
+            {getStatusBadge()}
+          </div>
           <div className="flex flex-wrap items-center gap-4 mb-4 text-muted-foreground">
             <div className="flex items-center gap-2">
               <Avatar className="w-6 h-6">
@@ -118,7 +172,6 @@ const ProjectDetailsPage = () => {
           </div>
         </div>
         
-        {/* Project Image */}
         <div className="mb-8 rounded-xl overflow-hidden shadow-lg">
           <img 
             src={project.imageUrl} 
@@ -127,7 +180,6 @@ const ProjectDetailsPage = () => {
           />
         </div>
         
-        {/* Action Buttons */}
         <div className="flex flex-wrap gap-4 mb-8">
           <Button 
             variant="outline" 
@@ -137,16 +189,26 @@ const ProjectDetailsPage = () => {
             <Heart className={`w-4 h-4 mr-2 ${liked ? "fill-accent" : ""}`} />
             {likesCount} Likes
           </Button>
+          
           <Button variant="outline" onClick={handleShare}>
             <Share2 className="w-4 h-4 mr-2" />
             Share
           </Button>
+          
+          {(project.status === "open") && (
+            <Button 
+              variant="default"
+              className="bg-gradient-to-r from-primary to-purple-500 hover:opacity-90"
+              onClick={() => navigate(`/projects/${id}/join`)}
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Request to Join
+            </Button>
+          )}
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="lg:col-span-2">
-            {/* Project Description */}
             <Card className="mb-8">
               <CardContent className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">About this Project</h2>
@@ -163,7 +225,6 @@ const ProjectDetailsPage = () => {
               </CardContent>
             </Card>
             
-            {/* Comments Section */}
             <h2 className="text-2xl font-semibold mb-4">Comments</h2>
             <Card className="mb-6">
               <CardContent className="p-6">
@@ -185,7 +246,6 @@ const ProjectDetailsPage = () => {
               </CardContent>
             </Card>
             
-            {/* Existing Comments */}
             <div className="space-y-4 mb-8">
               {project.comments.map(comment => (
                 <Card key={comment.id}>
@@ -209,9 +269,7 @@ const ProjectDetailsPage = () => {
             </div>
           </div>
           
-          {/* Sidebar */}
           <div>
-            {/* Author Info */}
             <Card className="mb-6">
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold mb-4">About the Creator</h3>
@@ -229,7 +287,6 @@ const ProjectDetailsPage = () => {
               </CardContent>
             </Card>
             
-            {/* Team Info */}
             <Card className="mb-6">
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Project Team</h3>
@@ -241,7 +298,6 @@ const ProjectDetailsPage = () => {
               </CardContent>
             </Card>
             
-            {/* Related Projects */}
             <h3 className="text-lg font-semibold mb-4">Related Projects</h3>
             <div className="space-y-4">
               {project.relatedProjects.map(related => (

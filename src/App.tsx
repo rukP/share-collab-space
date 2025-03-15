@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import ProjectDetailsPage from "./pages/ProjectDetailsPage";
 import PersonDetailsPage from "./pages/PersonDetailsPage";
 import AddProfilePage from "./pages/AddProfilePage";
 import CreateTeamPage from "./pages/CreateTeamPage";
+import RequestToJoinPage from "./pages/RequestToJoinPage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +31,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:id" element={<ProjectDetailsPage />} />
+          <Route path="/projects/:id/join" element={<RequestToJoinPage />} />
           <Route path="/teams" element={<TeamsPage />} />
           <Route path="/teams/:id" element={<TeamDetailsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
@@ -41,7 +42,6 @@ const App = () => (
           <Route path="/resources" element={<ResourcesPage />} />
           <Route path="/add-profile" element={<AddProfilePage />} />
           <Route path="/create-team" element={<CreateTeamPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
