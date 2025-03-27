@@ -1,8 +1,8 @@
 
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { PlusCircle, User, Menu, X, Search, Users } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,11 +27,11 @@ export const Header = () => {
         </div>
         
         <nav className="hidden md:flex items-center gap-3">
-          <Link to="/profile" className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-full border border-white/10 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors">
+          <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
             <User className="w-4 h-4" />
             Profile
           </Link>
-          <Link to="/create-team" className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-full border border-white/10 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors">
+          <Link to="/create-team" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
             <Users className="w-4 h-4" />
             Create Team
           </Link>
