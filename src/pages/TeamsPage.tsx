@@ -4,42 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Users, UserPlus, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
-
-// Mock teams data
-const MOCK_TEAMS = [
-  {
-    id: 1,
-    name: "Design Innovators",
-    description: "A team focused on experimental design approaches across various media",
-    members: 4,
-    openPositions: 2,
-    createdAt: "2023-10-15"
-  },
-  {
-    id: 2,
-    name: "Digital Fabrication Group",
-    description: "Exploring the intersection of digital design and physical fabrication techniques",
-    members: 3,
-    openPositions: 1,
-    createdAt: "2023-11-03"
-  },
-  {
-    id: 3,
-    name: "Sustainable Futures",
-    description: "Creating projects that address environmental challenges through design",
-    members: 5,
-    openPositions: 0,
-    createdAt: "2023-09-28"
-  },
-  {
-    id: 4,
-    name: "Interactive Media Lab",
-    description: "Developing interactive installations and digital experiences",
-    members: 3,
-    openPositions: 3,
-    createdAt: "2023-12-05"
-  }
-];
+import { MOCK_TEAMS } from "@/data/mockData";
 
 const TeamsPage = () => {
   return (
@@ -80,9 +45,11 @@ const TeamsPage = () => {
                 </div>
               </CardContent>
               <CardFooter className="border-t bg-card/50 pt-3">
-                <Button className="w-full" variant={team.openPositions > 0 ? "default" : "secondary"} disabled={team.openPositions === 0}>
-                  {team.openPositions > 0 ? "Join Team" : "Team Full"}
-                </Button>
+                <Link to={`/teams/${team.id}`} className="w-full">
+                  <Button className="w-full" variant={team.openPositions > 0 ? "default" : "secondary"}>
+                    View Team
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
           ))}

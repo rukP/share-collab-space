@@ -43,7 +43,22 @@ export const MOCK_TEAMS = [
     description: "A team focused on full-stack web development using React, Node.js, and MongoDB",
     members: 5,
     openPositions: 2,
-    createdAt: "2023-09-15"
+    createdAt: "2023-09-15",
+    category: "Web Development",
+    meetingTimes: "Tuesdays & Thursdays at 4PM",
+    isRecruiting: true,
+    teamLeader: "Grace Ishimwe",
+    teamMembers: [
+      { id: 1, name: "Grace Ishimwe", role: "Team Leader", avatar: "https://picsum.photos/seed/user1/300/300" },
+      { id: 2, name: "Kevin Mugisha", role: "Frontend Developer", avatar: "https://picsum.photos/seed/user2/300/300" },
+      { id: 3, name: "Alice Uwase", role: "Backend Developer", avatar: "https://picsum.photos/seed/user3/300/300" },
+      { id: 4, name: "Jean Mugabo", role: "UI/UX Designer", avatar: "https://picsum.photos/seed/user4/300/300" },
+      { id: 5, name: "Marie Uwimana", role: "DevOps Engineer", avatar: "https://picsum.photos/seed/user5/300/300" }
+    ],
+    projects: [
+      { id: 1, title: "RCA Student Portal", description: "A comprehensive student portal for course management", imageUrl: "https://picsum.photos/seed/p1/800/600" },
+      { id: 2, title: "Alumni Tracking System", description: "Platform to keep track of RCA alumni and their achievements", imageUrl: "https://picsum.photos/seed/p2/800/600" }
+    ]
   },
   {
     id: 2,
@@ -51,7 +66,45 @@ export const MOCK_TEAMS = [
     description: "Exploring machine learning algorithms and AI applications for local Rwandan problems",
     members: 4,
     openPositions: 3,
-    createdAt: "2023-10-05"
+    createdAt: "2023-10-05",
+    category: "Artificial Intelligence",
+    meetingTimes: "Mondays & Fridays at 3PM",
+    isRecruiting: true,
+    teamLeader: "Eric Manzi",
+    teamMembers: [
+      { id: 6, name: "Eric Manzi", role: "Team Leader", avatar: "https://picsum.photos/seed/user6/300/300" },
+      { id: 7, name: "Sophie Mukandayisenga", role: "Data Scientist", avatar: "https://picsum.photos/seed/user7/300/300" },
+      { id: 8, name: "Claude Ndayisaba", role: "ML Engineer", avatar: "https://picsum.photos/seed/user8/300/300" },
+      { id: 9, name: "Diane Uwera", role: "Research Assistant", avatar: "https://picsum.photos/seed/user9/300/300" }
+    ],
+    projects: [
+      { id: 3, title: "Kinyarwanda Speech Recognition", description: "Machine learning model for Kinyarwanda speech recognition", imageUrl: "https://picsum.photos/seed/p3/800/600" },
+      { id: 4, title: "Health Diagnosis Assistant", description: "AI system to assist with preliminary medical diagnoses", imageUrl: "https://picsum.photos/seed/p4/800/600" }
+    ]
+  },
+  {
+    id: 3,
+    name: "Mobile App Developers",
+    description: "Building cross-platform mobile applications with Flutter and React Native",
+    members: 6,
+    openPositions: 0,
+    createdAt: "2023-08-20",
+    category: "Mobile Development",
+    meetingTimes: "Wednesdays at 5PM",
+    isRecruiting: false,
+    teamLeader: "Patrick Mugisha",
+    teamMembers: [
+      { id: 10, name: "Patrick Mugisha", role: "Team Leader", avatar: "https://picsum.photos/seed/user10/300/300" },
+      { id: 11, name: "Samuel Kwizera", role: "Flutter Developer", avatar: "https://picsum.photos/seed/user11/300/300" },
+      { id: 12, name: "Emma Abimana", role: "React Native Developer", avatar: "https://picsum.photos/seed/user12/300/300" },
+      { id: 13, name: "David Niyonzima", role: "UI Designer", avatar: "https://picsum.photos/seed/user13/300/300" },
+      { id: 14, name: "Sarah Umuhoza", role: "Backend Developer", avatar: "https://picsum.photos/seed/user14/300/300" },
+      { id: 15, name: "John Mugwaneza", role: "QA Tester", avatar: "https://picsum.photos/seed/user15/300/300" }
+    ],
+    projects: [
+      { id: 5, title: "RCA Connect", description: "Mobile app connecting RCA students and alumni", imageUrl: "https://picsum.photos/seed/p5/800/600" },
+      { id: 6, title: "Kigali Transit", description: "Public transport tracking app for Kigali", imageUrl: "https://picsum.photos/seed/p6/800/600" }
+    ]
   }
 ];
 
