@@ -2,6 +2,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import { hotToast } from "@/components/ui/hot-toast";
 
+// Define the type for RPC function parameters
+interface ProjectIdParam {
+  project_id: string;
+}
+
 // Helper function to like a project
 export const likeProject = async (projectId: string): Promise<boolean> => {
   try {
@@ -39,9 +44,9 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       }
 
       // Decrement the likes count
-      const { error: updateError } = await supabase.rpc(
+      const { error: updateError } = await supabase.rpc<void>(
         'decrement_likes', 
-        { project_id: projectId } as { project_id: string }
+        { project_id: projectId } as ProjectIdParam
       );
       
       if (updateError) {
@@ -65,9 +70,9 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       }
 
       // Increment the likes count
-      const { error: updateError } = await supabase.rpc(
+      const { error: updateError } = await supabase.rpc<void>(
         'increment_likes', 
-        { project_id: projectId } as { project_id: string }
+        { project_id: projectId } as ProjectIdParam
       );
       
       if (updateError) {
