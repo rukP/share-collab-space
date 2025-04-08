@@ -42,7 +42,7 @@ export const getTeams = async (): Promise<Team[]> => {
     hotToast({
       title: "Error",
       description: `Failed to fetch teams: ${error.message}`,
-      variant: "destructive",
+      variant: "destructive"
     });
     console.error("Error fetching teams:", error);
     return [];
@@ -67,7 +67,7 @@ export const getTeamById = async (id: string): Promise<Team | null> => {
     hotToast({
       title: "Error",
       description: `Failed to fetch team: ${error.message}`,
-      variant: "destructive",
+      variant: "destructive"
     });
     console.error("Error fetching team:", error);
     return null;
@@ -97,7 +97,7 @@ export const getTeamMembers = async (teamId: string): Promise<TeamMember[]> => {
     hotToast({
       title: "Error",
       description: `Failed to fetch team members: ${error.message}`,
-      variant: "destructive",
+      variant: "destructive"
     });
     console.error("Error fetching team members:", error);
     return [];
@@ -125,7 +125,7 @@ export const joinTeam = async (teamId: string, userId: string, role: string = "m
       title: "Success",
       description: "You have joined the team!",
       variant: "success",
-      icon: <Check className="h-4 w-4 text-green-500" />,
+      icon: <Check className="h-4 w-4 text-green-500" />
     });
 
     return true;
@@ -133,7 +133,7 @@ export const joinTeam = async (teamId: string, userId: string, role: string = "m
     hotToast({
       title: "Error",
       description: `Failed to join team: ${error.message}`,
-      variant: "destructive",
+      variant: "destructive"
     });
     console.error("Error joining team:", error);
     return false;
@@ -176,7 +176,7 @@ export const createTeam = async (name: string, description: string, logoUrl?: st
       title: "Success",
       description: "Team created successfully!",
       variant: "success",
-      icon: <Check className="h-4 w-4 text-green-500" />,
+      icon: <Check className="h-4 w-4 text-green-500" />
     });
 
     return data;
@@ -184,7 +184,7 @@ export const createTeam = async (name: string, description: string, logoUrl?: st
     hotToast({
       title: "Error",
       description: `Failed to create team: ${error.message}`,
-      variant: "destructive",
+      variant: "destructive"
     });
     console.error("Error creating team:", error);
     return null;

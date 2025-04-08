@@ -12,7 +12,7 @@ export const submitJoinRequest = async (projectId: string, message: string): Pro
       hotToast({
         title: "Authentication Required",
         description: "Please log in to submit a join request",
-        variant: "destructive",
+        variant: "destructive"
       });
       return false;
     }
@@ -36,7 +36,7 @@ export const submitJoinRequest = async (projectId: string, message: string): Pro
       title: "Success",
       description: "Join request submitted successfully!",
       variant: "success",
-      icon: <Check className="h-4 w-4 text-green-500" />,
+      icon: <Check className="h-4 w-4 text-green-500" />
     });
 
     return true;
@@ -44,7 +44,7 @@ export const submitJoinRequest = async (projectId: string, message: string): Pro
     hotToast({
       title: "Error",
       description: `Failed to submit join request: ${error.message}`,
-      variant: "destructive",
+      variant: "destructive"
     });
     console.error("Error submitting join request:", error);
     return false;

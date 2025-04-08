@@ -79,7 +79,7 @@ export const updateUserProfile = async (
       title: "Success",
       description: "Profile updated successfully!",
       variant: "success",
-      icon: <Check className="h-4 w-4 text-green-500" />,
+      icon: <Check className="h-4 w-4 text-green-500" />
     });
 
     return data;
@@ -87,7 +87,7 @@ export const updateUserProfile = async (
     hotToast({
       title: "Error",
       description: `Failed to update profile: ${error.message}`,
-      variant: "destructive",
+      variant: "destructive"
     });
     console.error("Error updating user profile:", error);
     return null;
@@ -121,7 +121,7 @@ export const uploadAvatar = async (userId: string, file: File): Promise<string |
     hotToast({
       title: "Error",
       description: `Failed to upload avatar: ${error.message}`,
-      variant: "destructive",
+      variant: "destructive"
     });
     console.error("Error uploading avatar:", error);
     return null;

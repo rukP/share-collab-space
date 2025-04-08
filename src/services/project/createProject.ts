@@ -34,7 +34,7 @@ export const createProject = async (
       title: "Success",
       description: "Project created successfully!",
       variant: "success",
-      icon: <Check className="h-4 w-4 text-green-500" />,
+      icon: <Check className="h-4 w-4 text-green-500" />
     });
 
     return data;
@@ -42,7 +42,7 @@ export const createProject = async (
     hotToast({
       title: "Error",
       description: `Failed to create project: ${error.message}`,
-      variant: "destructive",
+      variant: "destructive"
     });
     console.error("Error creating project:", error);
     return null;
