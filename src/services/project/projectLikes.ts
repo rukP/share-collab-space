@@ -10,7 +10,7 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       hotToast({
         title: "Authentication Required",
         description: "Please log in to like projects",
-        variant: "destructive",
+        variant: "destructive"
       });
       return false;
     }
@@ -39,7 +39,10 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       }
 
       // Decrement the likes count
-      const { error: updateError } = await supabase.rpc('decrement_likes', { project_id: projectId });
+      const { error: updateError } = await supabase.rpc('decrement_likes', { 
+        project_id: projectId 
+      });
+      
       if (updateError) {
         throw updateError;
       }
@@ -61,7 +64,10 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       }
 
       // Increment the likes count
-      const { error: updateError } = await supabase.rpc('increment_likes', { project_id: projectId });
+      const { error: updateError } = await supabase.rpc('increment_likes', { 
+        project_id: projectId 
+      });
+      
       if (updateError) {
         throw updateError;
       }
@@ -72,7 +78,7 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
     hotToast({
       title: "Error",
       description: `Failed to update like: ${error.message}`,
-      variant: "destructive",
+      variant: "destructive"
     });
     console.error("Error liking/unliking project:", error);
     return false;

@@ -52,7 +52,11 @@ export const createProject = async (
       icon: <Check className="h-4 w-4 text-green-500" />
     });
 
-    return data;
+    // Cast the status to the proper type
+    return {
+      ...data,
+      status: data.status as 'open' | 'closed' | 'completed'
+    };
   } catch (error: any) {
     hotToast({
       title: "Error",

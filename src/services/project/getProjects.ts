@@ -19,15 +19,21 @@ export const getProjects = async (): Promise<Project[]> => {
       throw error;
     }
 
+    // Map data to ensure correct typing
+    const typedProjects: Project[] = data?.map(project => ({
+      ...project,
+      status: project.status as 'open' | 'closed' | 'completed'
+    })) || [];
+
     // Update cache with fresh data
-    data?.forEach(project => {
+    typedProjects.forEach(project => {
       projectCache.set(project.id, { 
         data: project, 
         timestamp: Date.now() 
       });
     });
 
-    return data || [];
+    return typedProjects;
   } catch (error: any) {
     hotToast({
       title: "Error",
@@ -58,12 +64,18 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
       throw error;
     }
 
+    // Ensure correct typing
+    const typedProject: Project = {
+      ...data,
+      status: data.status as 'open' | 'closed' | 'completed'
+    };
+
     // Update cache
-    if (data) {
-      projectCache.set(id, { data, timestamp: Date.now() });
+    if (typedProject) {
+      projectCache.set(id, { data: typedProject, timestamp: Date.now() });
     }
 
-    return data;
+    return typedProject;
   } catch (error: any) {
     hotToast({
       title: "Error",

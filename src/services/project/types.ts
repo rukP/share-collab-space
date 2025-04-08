@@ -1,13 +1,11 @@
 
-import { Check } from "lucide-react";
-
 export interface Project {
   id: string;
   title: string;
   description: string | null;
   image_url: string | null;
   team_id: string | null;
-  status: 'open' | 'closed' | 'completed' | null;
+  status: 'open' | 'closed' | 'completed';
   likes: number | null;
   created_at: string;
   updated_at: string;
