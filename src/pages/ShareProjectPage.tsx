@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-import { Upload, X, Image, Plus, Tag } from "lucide-react";
+import { Upload, X, Image, Plus, Tag, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
@@ -67,7 +67,8 @@ const ShareProjectPage = () => {
       setIsSubmitting(false);
       toast({
         title: "Success!",
-        description: "Your project has been shared.",
+        description: "Your project has been shared with the community.",
+        icon: <Check className="h-4 w-4 text-green-500" />
       });
       
       // Reset form

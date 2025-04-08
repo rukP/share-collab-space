@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { MOCK_PROJECTS } from "@/data/mockData";
+import { Check } from "lucide-react";
 
 const RequestToJoinPage = () => {
   const { id } = useParams();
@@ -74,6 +75,7 @@ const RequestToJoinPage = () => {
       toast({
         title: "Request Sent!",
         description: "Your request to join this project has been sent to the project owner.",
+        icon: <Check className="h-4 w-4 text-green-500" />
       });
       navigate(`/projects/${id}`);
     }, 1000);
