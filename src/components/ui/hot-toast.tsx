@@ -1,6 +1,6 @@
 
 import { forwardRef } from "react";
-import { toast as sonnerToast, ToastProps as SonnerToastProps } from "sonner";
+import { toast as sonnerToast } from "sonner";
 import { AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
