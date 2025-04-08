@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { hotToast } from "@/components/ui/hot-toast";
 import { Check } from "lucide-react";
 import { Project } from "./types";
+import { validateData, projectSchema } from "@/lib/validation";
 
 // Helper function to create a project
 export const createProject = async (
@@ -12,6 +13,20 @@ export const createProject = async (
   imageUrl?: string
 ): Promise<Project | null> => {
   try {
+    // Validate input data
+    const validation = validateData(projectSchema, { title, description, teamId, imageUrl });
+    if (!validation.success) {
+      throw new Error(validation.error);
+    }
+
+    // Debounce and throttle protection
+    const timestamp = localStorage.getItem('lastProjectCreation');
+    const now = Date.now();
+    if (timestamp && now - parseInt(timestamp) < 5000) {
+      throw new Error('Please wait a few seconds before creating another project');
+    }
+    localStorage.setItem('lastProjectCreation', now.toString());
+
     const { data, error } = await supabase
       .from("projects")
       .insert([
