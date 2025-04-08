@@ -5,7 +5,15 @@ import { Check } from "lucide-react";
 import { Project } from "./types";
 import { validateData, projectSchema } from "@/lib/validation";
 
-// Helper function to create a project
+/**
+ * Creates a new project in the database
+ * 
+ * @param title - Project title
+ * @param description - Project description
+ * @param teamId - Team ID this project belongs to
+ * @param imageUrl - Optional project image URL
+ * @returns The created project or null if creation failed
+ */
 export const createProject = async (
   title: string, 
   description: string, 
@@ -14,12 +22,12 @@ export const createProject = async (
 ): Promise<Project | null> => {
   try {
     // Validate input data
-    const validation = validateData(projectSchema, { title, description, teamId, imageUrl });
-    if (!validation.success) {
-      throw new Error(validation.error);
+    const validationResult = validateData(projectSchema, { title, description, teamId, imageUrl });
+    if (!validationResult.success) {
+      throw new Error(validationResult.error);
     }
 
-    // Debounce and throttle protection
+    // Throttle protection - prevent rapid project creation
     const timestamp = localStorage.getItem('lastProjectCreation');
     const now = Date.now();
     if (timestamp && now - parseInt(timestamp) < 5000) {
@@ -27,6 +35,7 @@ export const createProject = async (
     }
     localStorage.setItem('lastProjectCreation', now.toString());
 
+    // Create the project in Supabase
     const { data, error } = await supabase
       .from("projects")
       .insert([
@@ -45,6 +54,7 @@ export const createProject = async (
       throw error;
     }
 
+    // Show success message
     hotToast({
       title: "Success",
       description: "Project created successfully!",
@@ -52,12 +62,13 @@ export const createProject = async (
       icon: <Check className="h-4 w-4 text-green-500" />
     });
 
-    // Cast the status to the proper type
+    // Cast the status to the proper type and return the created project
     return {
       ...data,
       status: data.status as 'open' | 'closed' | 'completed'
     };
   } catch (error: any) {
+    // Show error message
     hotToast({
       title: "Error",
       description: `Failed to create project: ${error.message}`,
