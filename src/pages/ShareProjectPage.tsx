@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { useState } from "react";
 import { Upload, X, Image, Plus, Tag, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { hotToast } from "@/components/ui/hot-toast";
 
 const ShareProjectPage = () => {
   const [title, setTitle] = useState("");
@@ -65,9 +65,12 @@ const ShareProjectPage = () => {
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      toast({
+      
+      // Use hotToast instead of regular toast
+      hotToast({
         title: "Success!",
         description: "Your project has been shared with the community.",
+        variant: "success",
         icon: <Check className="h-4 w-4 text-green-500" />
       });
       

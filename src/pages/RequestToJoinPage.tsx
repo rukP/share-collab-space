@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { MOCK_PROJECTS } from "@/data/mockData";
 import { Check } from "lucide-react";
+import { hotToast } from "@/components/ui/hot-toast";
 
 const RequestToJoinPage = () => {
   const { id } = useParams();
@@ -72,11 +73,15 @@ const RequestToJoinPage = () => {
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      toast({
+      
+      // Use hotToast instead of regular toast
+      hotToast({
         title: "Request Sent!",
         description: "Your request to join this project has been sent to the project owner.",
+        variant: "success",
         icon: <Check className="h-4 w-4 text-green-500" />
       });
+      
       navigate(`/projects/${id}`);
     }, 1000);
   };

@@ -1,10 +1,10 @@
 
 import { forwardRef } from "react";
-import { toast as sonnerToast, Toast } from "sonner";
+import { toast as sonnerToast, ToastProps as SonnerToastProps } from "sonner";
 import { AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ToastProps = React.ComponentProps<typeof Toast> & {
+type ToastProps = React.HTMLAttributes<HTMLDivElement> & {
   title?: string;
   description?: string;
   variant?: "default" | "destructive" | "success" | "warning";
@@ -65,9 +65,8 @@ type ToastOptions = {
 };
 
 export function hotToast(options: ToastOptions) {
-  return sonnerToast.custom((toastProps) => (
+  return sonnerToast.custom((props) => (
     <HotToast
-      {...toastProps}
       title={options.title}
       description={options.description}
       variant={options.variant}
