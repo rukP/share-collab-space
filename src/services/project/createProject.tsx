@@ -3,7 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { hotToast } from "@/components/ui/hot-toast";
 import { Check } from "lucide-react";
 import { Project } from "./types";
-import { validateData, projectSchema } from "@/lib/validation";
+import { z } from "zod";
+
+// Project validation schema
+const projectSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  teamId: z.string().uuid("Team ID must be a valid UUID"),
+  imageUrl: z.string().url().optional(),
+});
 
 /**
  * Creates a new project in the database
@@ -21,12 +29,16 @@ export const createProject = async (
   imageUrl?: string
 ): Promise<Project | null> => {
   try {
-    // Validate input data
-    const validationResult = validateData(projectSchema, { title, description, teamId, imageUrl });
+    // Validate input data with Zod directly
+    const validationResult = projectSchema.safeParse({ 
+      title, 
+      description, 
+      teamId, 
+      imageUrl 
+    });
     
-    // Proper type handling to fix TypeScript error
     if (!validationResult.success) {
-      throw new Error(validationResult.error);
+      throw new Error(validationResult.error.errors[0].message);
     }
 
     // Throttle protection - prevent rapid project creation
