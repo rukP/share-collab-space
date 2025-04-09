@@ -24,8 +24,8 @@ export const createProject = async (
     // Validate input data
     const validationResult = validateData(projectSchema, { title, description, teamId, imageUrl });
     if (!validationResult.success) {
-      // Proper type narrowing - access error only when success is false
-      throw new Error(validationResult.success ? "" : validationResult.error);
+      // Type narrowing - only access error when success is false
+      throw new Error(validationResult.error);
     }
 
     // Throttle protection - prevent rapid project creation
