@@ -5,4 +5,5 @@ export interface RpcFunctions {
   decrement_likes: (params: { project_id: string }) => void;
 }
 
-// You can extend this with other RPC functions as needed
+// Type for RPC function names to be used with supabase.rpc
+export type RpcFunctionName = keyof RpcFunctions;

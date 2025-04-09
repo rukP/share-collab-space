@@ -7,6 +7,8 @@ import { ProjectHeader } from "@/components/project/ProjectHeader";
 import { ProjectInfo } from "@/components/project/ProjectInfo";
 import { CommentSection } from "@/components/project/CommentSection";
 import { ProjectSidebar } from "@/components/project/ProjectSidebar";
+import { useProject } from "@/hooks/use-projects";
+import { useProjectLikes, useToggleProjectLike } from "@/hooks/use-project-likes";
 
 interface ProjectData {
   id: number;
@@ -21,7 +23,7 @@ interface ProjectData {
   date: string;
   team: string;
   teamId: number;
-  status: "open" | "closed" | "completed"; // Fixed: Add status property to the interface
+  status: "open" | "closed" | "completed";
   comments: {
     id: number;
     author: string;
@@ -86,8 +88,11 @@ const PROJECT_DATA: ProjectData = {
 const ProjectDetailsPage = () => {
   const { id } = useParams();
   const [project, setProject] = useState<ProjectData>(PROJECT_DATA);
-  const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(PROJECT_DATA.likes);
+  
+  // Use real data from Supabase
+  const { data: projectData, isLoading: projectLoading } = useProject(id || "");
+  const { data: likesData, isLoading: likesLoading } = useProjectLikes(id || "");
+  const toggleLike = useToggleProjectLike();
 
   useEffect(() => {
     console.log(`Fetching project with ID: ${id}`);
@@ -98,15 +103,17 @@ const ProjectDetailsPage = () => {
         status: (mockProject.status as "open" | "closed" | "completed") || "open"
       }));
     }
-  }, [id]);
+    
+    // If we have real project data, we could use it here
+    if (projectData) {
+      console.log("Real project data:", projectData);
+    }
+  }, [id, projectData]);
 
   const handleLike = () => {
-    if (liked) {
-      setLikesCount(prev => prev - 1);
-    } else {
-      setLikesCount(prev => prev + 1);
+    if (id) {
+      toggleLike.mutate(id);
     }
-    setLiked(!liked);
   };
 
   return (
@@ -116,16 +123,22 @@ const ProjectDetailsPage = () => {
         <ProjectHeader 
           id={id} 
           project={{
-            title: project.title,
+            title: projectData?.title || project.title,
             author: project.author,
             authorAvatar: project.authorAvatar,
-            date: project.date,
+            date: projectData?.created_at 
+              ? new Date(projectData.created_at).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })
+              : project.date,
             team: project.team,
-            status: project.status // Now this property exists
+            status: projectData?.status as "open" | "closed" | "completed" || project.status
           }}
           likes={{
-            count: likesCount,
-            isLiked: liked,
+            count: likesData?.count || project.likes,
+            isLiked: likesData?.isLiked || false,
             onLike: handleLike
           }}
         />
@@ -133,7 +146,7 @@ const ProjectDetailsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <ProjectInfo 
-              description={project.description}
+              description={projectData?.description || project.description}
               tags={project.tags}
             />
             
