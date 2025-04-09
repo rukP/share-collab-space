@@ -24,7 +24,7 @@ export const createProject = async (
     // Validate input data
     const validationResult = validateData(projectSchema, { title, description, teamId, imageUrl });
     if (!validationResult.success) {
-      // Type narrowing - only access error when success is false
+      // Type narrowing ensures TypeScript knows validationResult.error exists
       throw new Error(validationResult.error);
     }
 
