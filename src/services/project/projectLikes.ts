@@ -39,10 +39,10 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       }
 
       // Decrement the likes count using RPC
-      // Explicitly pass an object without type parameters to avoid TypeScript errors
+      // Fix TypeScript errors by using the proper function call syntax
       const { error: updateError } = await supabase.rpc('decrement_likes', {
         project_id: projectId
-      });
+      } as Record<string, unknown>);
       
       if (updateError) {
         throw updateError;
@@ -65,10 +65,10 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       }
 
       // Increment the likes count using RPC
-      // Explicitly pass an object without type parameters to avoid TypeScript errors
+      // Fix TypeScript errors by using the proper function call syntax
       const { error: updateError } = await supabase.rpc('increment_likes', {
         project_id: projectId
-      });
+      } as Record<string, unknown>);
       
       if (updateError) {
         throw updateError;
