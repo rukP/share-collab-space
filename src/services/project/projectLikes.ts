@@ -41,7 +41,7 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       // Decrement the likes count using RPC
       const { error: updateError } = await supabase.rpc(
         'decrement_likes',
-        { project_id: projectId }
+        { project_id: projectId } as any
       );
       
       if (updateError) {
@@ -67,7 +67,7 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       // Increment the likes count using RPC
       const { error: updateError } = await supabase.rpc(
         'increment_likes',
-        { project_id: projectId }
+        { project_id: projectId } as any
       );
       
       if (updateError) {
