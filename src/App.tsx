@@ -42,24 +42,77 @@ const App = () => (
           {/* Render Index directly without Suspense to avoid dynamic import issues */}
           <Route path="/" element={<Index />} />
           
-          {/* Wrap all other routes with Suspense for lazy loading */}
-          <Suspense fallback={<LoadingFallback />}>
-            {/* Fix: Move all Route components to be direct children of Routes */}
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/projects/:id" element={<ProjectDetailsPage />} />
-            <Route path="/projects/:id/join" element={<RequestToJoinPage />} />
-            <Route path="/teams" element={<TeamsPage />} />
-            <Route path="/teams/:id" element={<TeamDetailsPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/profile/:id" element={<PersonDetailsPage />} />
-            <Route path="/share-project" element={<ShareProjectPage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="/resources" element={<ResourcesPage />} />
-            <Route path="/add-profile" element={<AddProfilePage />} />
-            <Route path="/create-team" element={<CreateTeamPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Suspense>
+          {/* Wrap these routes with Suspense */}
+          <Route path="/projects" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <ProjectsPage />
+            </Suspense>
+          } />
+          <Route path="/projects/:id" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <ProjectDetailsPage />
+            </Suspense>
+          } />
+          <Route path="/projects/:id/join" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <RequestToJoinPage />
+            </Suspense>
+          } />
+          <Route path="/teams" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <TeamsPage />
+            </Suspense>
+          } />
+          <Route path="/teams/:id" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <TeamDetailsPage />
+            </Suspense>
+          } />
+          <Route path="/profile" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <ProfilePage />
+            </Suspense>
+          } />
+          <Route path="/profile/:id" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <PersonDetailsPage />
+            </Suspense>
+          } />
+          <Route path="/share-project" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <ShareProjectPage />
+            </Suspense>
+          } />
+          <Route path="/search" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <SearchPage />
+            </Suspense>
+          } />
+          <Route path="/events" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <EventsPage />
+            </Suspense>
+          } />
+          <Route path="/resources" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <ResourcesPage />
+            </Suspense>
+          } />
+          <Route path="/add-profile" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <AddProfilePage />
+            </Suspense>
+          } />
+          <Route path="/create-team" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <CreateTeamPage />
+            </Suspense>
+          } />
+          <Route path="*" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <NotFound />
+            </Suspense>
+          } />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
