@@ -39,7 +39,6 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       }
 
       // Decrement the likes count using RPC
-      // Fix the TypeScript error by using the correct type parameters
       const { error: updateError } = await supabase.rpc(
         'decrement_likes',
         { project_id: projectId }
@@ -66,7 +65,6 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       }
 
       // Increment the likes count using RPC
-      // Fix the TypeScript error by using the correct type parameters
       const { error: updateError } = await supabase.rpc(
         'increment_likes',
         { project_id: projectId }

@@ -44,22 +44,21 @@ const App = () => (
           
           {/* Wrap all other routes with Suspense for lazy loading */}
           <Suspense fallback={<LoadingFallback />}>
-            <Route>
-              <Route path="/projects" element={<ProjectsPage />} />
-              <Route path="/projects/:id" element={<ProjectDetailsPage />} />
-              <Route path="/projects/:id/join" element={<RequestToJoinPage />} />
-              <Route path="/teams" element={<TeamsPage />} />
-              <Route path="/teams/:id" element={<TeamDetailsPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/profile/:id" element={<PersonDetailsPage />} />
-              <Route path="/share-project" element={<ShareProjectPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/resources" element={<ResourcesPage />} />
-              <Route path="/add-profile" element={<AddProfilePage />} />
-              <Route path="/create-team" element={<CreateTeamPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
+            {/* Fix: Move all Route components to be direct children of Routes */}
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailsPage />} />
+            <Route path="/projects/:id/join" element={<RequestToJoinPage />} />
+            <Route path="/teams" element={<TeamsPage />} />
+            <Route path="/teams/:id" element={<TeamDetailsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile/:id" element={<PersonDetailsPage />} />
+            <Route path="/share-project" element={<ShareProjectPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/events" element={<EventsPage />} />
+            <Route path="/resources" element={<ResourcesPage />} />
+            <Route path="/add-profile" element={<AddProfilePage />} />
+            <Route path="/create-team" element={<CreateTeamPage />} />
+            <Route path="*" element={<NotFound />} />
           </Suspense>
         </Routes>
       </BrowserRouter>
