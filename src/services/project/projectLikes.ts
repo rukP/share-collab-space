@@ -39,8 +39,11 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       }
 
       // Decrement the likes count using RPC
-      const params: Record<string, unknown> = { project_id: projectId };
-      const { error: updateError } = await supabase.rpc('decrement_likes', params);
+      // Fix the TypeScript error by explicitly typing the parameters
+      const { error: updateError } = await supabase.rpc(
+        'decrement_likes',
+        { project_id: projectId } as unknown as Record<string, unknown>
+      );
       
       if (updateError) {
         throw updateError;
@@ -63,8 +66,11 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
       }
 
       // Increment the likes count using RPC
-      const params: Record<string, unknown> = { project_id: projectId };
-      const { error: updateError } = await supabase.rpc('increment_likes', params);
+      // Fix the TypeScript error by explicitly typing the parameters
+      const { error: updateError } = await supabase.rpc(
+        'increment_likes',
+        { project_id: projectId } as unknown as Record<string, unknown>
+      );
       
       if (updateError) {
         throw updateError;
