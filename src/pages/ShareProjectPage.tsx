@@ -9,8 +9,10 @@ import { Upload, X, Image, Plus, Tag, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { hotToast } from "@/components/ui/hot-toast";
+import { useProtectedRoute } from "@/hooks/use-protected-route";
 
 const ShareProjectPage = () => {
+  const { isLoading } = useProtectedRoute();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -19,6 +21,10 @@ const ShareProjectPage = () => {
   const [currentTag, setCurrentTag] = useState("");
   const [course, setCourse] = useState("");
   const { toast } = useToast();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

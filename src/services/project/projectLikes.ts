@@ -1,21 +1,16 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { hotToast } from "@/components/ui/hot-toast";
-import type { RpcFunctions, RpcFunctionName } from "@/integrations/supabase/rpcTypes";
+import { RpcFunctionName } from "@/integrations/supabase/rpcTypes";
 
-// Helper function to like a project
-export const likeProject = async (projectId: string): Promise<boolean> => {
+// Toggle project like status
+export const likeProject = async (projectId: string): Promise<{ isLiked: boolean }> => {
   try {
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) {
-      hotToast({
-        title: "Authentication Required",
-        description: "Please log in to like projects",
-        variant: "destructive"
-      });
-      return false;
+      throw new Error("User must be logged in to like a project");
     }
 
+    // Check if the user has already liked the project
     const { data: existingLike, error: checkError } = await supabase
       .from("project_likes")
       .select("*")
@@ -28,88 +23,52 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
     }
 
     if (existingLike) {
-      // User already liked the project, so unlike it
-      const { error: unlikeError } = await supabase
+      // User has already liked the project, so unlike it
+      const { error: deleteError } = await supabase
         .from("project_likes")
         .delete()
         .eq("project_id", projectId)
         .eq("user_id", user.id);
 
-      if (unlikeError) {
-        throw unlikeError;
+      if (deleteError) {
+        throw deleteError;
       }
 
-      // Decrement the likes count using RPC
-      const { error: updateError } = await supabase.rpc<RpcFunctionName>(
-        'decrement_likes' as RpcFunctionName,
+      // Call RPC function to update like count in the projects table
+      const { error: rpcError } = await supabase.rpc<RpcFunctionName, 'decrement_likes'>(
+        'decrement_likes',
         { project_id: projectId }
       );
-      
-      if (updateError) {
-        throw updateError;
+
+      if (rpcError) {
+        console.error("Error decrementing likes:", rpcError);
       }
 
-      return false;
+      return { isLiked: false };
     } else {
       // User hasn't liked the project yet, so like it
-      const { error: likeError } = await supabase
+      const { error: insertError } = await supabase
         .from("project_likes")
-        .insert([
-          {
-            project_id: projectId,
-            user_id: user.id,
-          },
-        ]);
+        .insert([{ project_id: projectId, user_id: user.id }]);
 
-      if (likeError) {
-        throw likeError;
+      if (insertError) {
+        throw insertError;
       }
 
-      // Increment the likes count using RPC
-      const { error: updateError } = await supabase.rpc<RpcFunctionName>(
-        'increment_likes' as RpcFunctionName,
+      // Call RPC function to update like count in the projects table
+      const { error: rpcError } = await supabase.rpc<RpcFunctionName, 'increment_likes'>(
+        'increment_likes',
         { project_id: projectId }
       );
-      
-      if (updateError) {
-        throw updateError;
+
+      if (rpcError) {
+        console.error("Error incrementing likes:", rpcError);
       }
 
-      return true;
+      return { isLiked: true };
     }
-  } catch (error: any) {
-    hotToast({
-      title: "Error",
-      description: `Failed to update like: ${error.message}`,
-      variant: "destructive"
-    });
-    console.error("Error liking/unliking project:", error);
-    return false;
-  }
-};
-
-// Helper function to check if a user has liked a project
-export const hasUserLikedProject = async (projectId: string): Promise<boolean> => {
-  try {
-    const user = (await supabase.auth.getUser()).data.user;
-    if (!user) {
-      return false;
-    }
-
-    const { data, error } = await supabase
-      .from("project_likes")
-      .select("*")
-      .eq("project_id", projectId)
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (error) {
-      throw error;
-    }
-
-    return !!data;
-  } catch (error: any) {
-    console.error("Error checking if user liked project:", error);
-    return false;
+  } catch (error) {
+    console.error("Error toggling project like:", error);
+    throw error;
   }
 };

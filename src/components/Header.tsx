@@ -1,13 +1,15 @@
 
 import { Link } from "react-router-dom";
-import { PlusCircle, User, Menu, X, Search, Users } from "lucide-react";
+import { PlusCircle, User, Menu, X, Search, Users, LogOut } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/context/AuthContext";
 
 export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { isAuthenticated, signOut, user } = useAuth();
 
   return (
     <header className="border-b border-white/5 sticky top-0 bg-background/95 backdrop-blur-md z-50">
@@ -26,23 +28,46 @@ export const Header = () => {
           <Link to="/search" className="text-muted-foreground hover:text-foreground transition-colors">
             Search
           </Link>
-          <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-            <User className="w-4 h-4" />
-            Profile
-          </Link>
+          {isAuthenticated ? (
+            <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Profile
+            </Link>
+          ) : (
+            <Link to="/auth" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Sign In
+            </Link>
+          )}
         </div>
         
         <nav className="hidden md:flex items-center gap-3">
-          <Link to="/create-team" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Create Team
-          </Link>
-          <Link to="/share-project">
-            <Button size="sm" className="rounded-full shadow-lg shadow-primary/20">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Share Project
-            </Button>
-          </Link>
+          {isAuthenticated && (
+            <>
+              <Link to="/create-team" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Create Team
+              </Link>
+              <Link to="/share-project">
+                <Button size="sm" className="rounded-full shadow-lg shadow-primary/20">
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Share Project
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground">
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </>
+          )}
+          
+          {!isAuthenticated && (
+            <Link to="/auth">
+              <Button size="sm" className="rounded-full shadow-lg shadow-primary/20">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </nav>
 
         {/* Mobile menu button */}
@@ -80,28 +105,50 @@ export const Header = () => {
             >
               Search
             </Link>
-            <Link 
-              to="/profile" 
-              className="text-foreground py-2 flex items-center gap-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <User className="w-4 h-4" />
-              Profile
-            </Link>
-            <Link 
-              to="/create-team" 
-              className="text-foreground py-2 flex items-center gap-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Users className="w-4 h-4" />
-              Create Team
-            </Link>
-            <Link to="/share-project" onClick={() => setMobileMenuOpen(false)}>
-              <Button className="w-full justify-center rounded-full shadow-lg shadow-primary/20">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Share Project
-              </Button>
-            </Link>
+            
+            {isAuthenticated ? (
+              <>
+                <Link 
+                  to="/profile" 
+                  className="text-foreground py-2 flex items-center gap-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <User className="w-4 h-4" />
+                  Profile
+                </Link>
+                <Link 
+                  to="/create-team" 
+                  className="text-foreground py-2 flex items-center gap-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Users className="w-4 h-4" />
+                  Create Team
+                </Link>
+                <Link to="/share-project" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full justify-center rounded-full shadow-lg shadow-primary/20">
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    Share Project
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-center"
+                  onClick={() => {
+                    signOut();
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                <Button className="w-full justify-center rounded-full shadow-lg shadow-primary/20">
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </nav>
         </div>
       )}
