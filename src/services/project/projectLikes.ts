@@ -1,7 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { RpcFunctionName, RpcParams } from "@/integrations/supabase/rpcTypes";
-import { Project } from "./types";
 
 // Check if a user has liked a project
 export const checkProjectLike = async (projectId: string): Promise<boolean> => {
@@ -29,10 +27,13 @@ export const checkProjectLike = async (projectId: string): Promise<boolean> => {
 };
 
 // Toggle like/unlike a project
-export const toggleProjectLike = async (projectId: string, isLiked: boolean): Promise<boolean> => {
+export const toggleProjectLike = async (projectId: string): Promise<boolean> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
+
+    // Check if already liked
+    const isLiked = await checkProjectLike(projectId);
 
     if (isLiked) {
       // Unlike the project
@@ -48,14 +49,9 @@ export const toggleProjectLike = async (projectId: string, isLiked: boolean): Pr
       }
 
       // Call RPC function to update like count in the projects table
-      const { error: rpcError } = await supabase.rpc(
-        'decrement_likes' as RpcFunctionName,
-        { project_id: projectId } as RpcParams['decrement_likes']
-      );
-
-      if (rpcError) {
-        console.error("Error updating project like count:", rpcError);
-      }
+      await supabase.rpc('decrement_likes', { 
+        project_id: projectId 
+      });
     } else {
       // Like the project
       const { error } = await supabase
@@ -68,14 +64,9 @@ export const toggleProjectLike = async (projectId: string, isLiked: boolean): Pr
       }
 
       // Call RPC function to update like count in the projects table
-      const { error: rpcError } = await supabase.rpc(
-        'increment_likes' as RpcFunctionName,
-        { project_id: projectId } as RpcParams['increment_likes']
-      );
-
-      if (rpcError) {
-        console.error("Error updating project like count:", rpcError);
-      }
+      await supabase.rpc('increment_likes', { 
+        project_id: projectId 
+      });
     }
 
     return true;
@@ -105,3 +96,6 @@ export const getProjectLikes = async (projectId: string): Promise<number> => {
     return 0;
   }
 };
+
+// Re-export the toggleProjectLike as likeProject to maintain compatibility
+export const likeProject = toggleProjectLike;

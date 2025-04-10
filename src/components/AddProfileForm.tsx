@@ -4,17 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { User, Mail, Building, Upload, X, School } from "lucide-react";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getCurrentProfile, updateUserProfile, uploadAvatar, Profile } from "@/services/profileService";
-import { supabase } from "@/integrations/supabase/client";
 import { hotToast } from "@/components/ui/hot-toast";
 import { useAuth } from "@/context/AuthContext";
+import { AvatarUpload } from "./profile/AvatarUpload";
+import { ProfileBasicInfo } from "./profile/ProfileBasicInfo";
+import { ProfileBioField } from "./profile/ProfileBioField";
 
 // Form schema for validation
 const profileSchema = z.object({
@@ -31,7 +29,6 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 const AddProfileForm = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingProfile, setExistingProfile] = useState<Profile | null>(null);
   const navigate = useNavigate();
@@ -63,11 +60,6 @@ const AddProfileForm = () => {
           form.setValue("course", profile.course || "");
           form.setValue("year", profile.year ? String(profile.year) : "");
           form.setValue("bio", profile.bio || "");
-          
-          // Set avatar preview if available
-          if (profile.avatar_url) {
-            setAvatarPreview(profile.avatar_url);
-          }
         } else if (user.email) {
           form.setValue("email", user.email);
         }
@@ -77,21 +69,8 @@ const AddProfileForm = () => {
     loadProfile();
   }, [user, form]);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setAvatarFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const clearAvatar = () => {
-    setAvatarFile(null);
-    setAvatarPreview(null);
+  const handleAvatarChange = (file: File | null) => {
+    setAvatarFile(file);
   };
 
   const onSubmit = async (data: ProfileFormValues) => {
@@ -166,165 +145,18 @@ const AddProfileForm = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-                {/* Avatar Upload */}
-                <div className="w-full md:w-1/3 flex flex-col items-center">
-                  <div className="relative">
-                    {avatarPreview ? (
-                      <div className="relative h-40 w-40 rounded-full overflow-hidden border-4 border-primary/30">
-                        <img 
-                          src={avatarPreview} 
-                          alt="Avatar Preview" 
-                          className="w-full h-full object-cover" 
-                        />
-                        <Button 
-                          type="button"
-                          variant="destructive" 
-                          size="icon" 
-                          className="absolute top-0 right-0 h-8 w-8" 
-                          onClick={clearAvatar}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="h-40 w-40 rounded-full bg-muted flex items-center justify-center border-4 border-primary/30">
-                        <User className="h-16 w-16 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-4">
-                    <Input 
-                      id="avatar" 
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*"
-                      onChange={handleAvatarChange}
-                    />
-                    <Label htmlFor="avatar">
-                      <Button type="button" variant="outline" size="sm" className="cursor-pointer">
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload Photo
-                      </Button>
-                    </Label>
-                  </div>
-                </div>
+                {/* Avatar Upload Component */}
+                <AvatarUpload 
+                  avatarUrl={existingProfile?.avatar_url || null} 
+                  onAvatarChange={handleAvatarChange} 
+                />
                 
-                {/* Basic Info */}
-                <div className="w-full md:w-2/3 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <div className="relative">
-                            <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                placeholder="Your name" 
-                                className="pl-10 border-primary/20 focus-visible:ring-primary"
-                              />
-                            </FormControl>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                placeholder="Your email" 
-                                className="pl-10 border-primary/20 focus-visible:ring-primary"
-                                disabled={!!user?.email}
-                              />
-                            </FormControl>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="course"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Course / Program</FormLabel>
-                          <div className="relative">
-                            <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                placeholder="Your course or program" 
-                                className="pl-10 border-primary/20 focus-visible:ring-primary"
-                              />
-                            </FormControl>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="year"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Year</FormLabel>
-                          <div className="relative">
-                            <School className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                placeholder="Current year (e.g., 2)" 
-                                className="pl-10 border-primary/20 focus-visible:ring-primary"
-                                type="number"
-                                min="1"
-                              />
-                            </FormControl>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
+                {/* Basic Info Component */}
+                <ProfileBasicInfo control={form.control} user={user} />
               </div>
               
-              <FormField
-                control={form.control}
-                name="bio"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bio</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        {...field} 
-                        placeholder="Tell us about yourself, your interests, and your work..." 
-                        rows={5}
-                        className="border-primary/20 focus-visible:ring-primary resize-y"
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Your bio will be visible to other users on your profile page.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Bio Field Component */}
+              <ProfileBioField control={form.control} />
             </CardContent>
             <CardFooter className="flex justify-end border-t p-6">
               <Button 

@@ -1,0 +1,76 @@
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { User, Upload, X } from "lucide-react";
+
+interface AvatarUploadProps {
+  avatarUrl: string | null;
+  onAvatarChange: (file: File | null) => void;
+}
+
+export const AvatarUpload = ({ avatarUrl, onAvatarChange }: AvatarUploadProps) => {
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(avatarUrl);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onAvatarChange(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearAvatar = () => {
+    onAvatarChange(null);
+    setAvatarPreview(null);
+  };
+
+  return (
+    <div className="w-full md:w-1/3 flex flex-col items-center">
+      <div className="relative">
+        {avatarPreview ? (
+          <div className="relative h-40 w-40 rounded-full overflow-hidden border-4 border-primary/30">
+            <img 
+              src={avatarPreview} 
+              alt="Avatar Preview" 
+              className="w-full h-full object-cover" 
+            />
+            <Button 
+              type="button"
+              variant="destructive" 
+              size="icon" 
+              className="absolute top-0 right-0 h-8 w-8" 
+              onClick={clearAvatar}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="h-40 w-40 rounded-full bg-muted flex items-center justify-center border-4 border-primary/30">
+            <User className="h-16 w-16 text-muted-foreground" />
+          </div>
+        )}
+      </div>
+      <div className="mt-4">
+        <Input 
+          id="avatar" 
+          type="file" 
+          className="hidden" 
+          accept="image/*"
+          onChange={handleAvatarChange}
+        />
+        <Label htmlFor="avatar">
+          <Button type="button" variant="outline" size="sm" className="cursor-pointer">
+            <Upload className="w-4 h-4 mr-2" />
+            Upload Photo
+          </Button>
+        </Label>
+      </div>
+    </div>
+  );
+};
