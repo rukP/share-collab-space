@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { UserPlus } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 import { Profile, getCurrentProfile } from "@/services/profileService";
 import { Card } from "@/components/ui/card";
@@ -97,6 +96,9 @@ const ProfilePage = () => {
     enabled: !!profile,
   });
 
+  // Check if the profile is incomplete (missing essential information)
+  const isProfileIncomplete = !profile || !profile.name || !profile.course || !profile.bio || !profile.avatar_url;
+
   const isLoading = authLoading || profileLoading;
 
   if (authLoading) {
@@ -109,7 +111,8 @@ const ProfilePage = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold">My Profile</h2>
-          {(!profile || !profile.avatar_url || !profile.bio) && (
+          
+          {isProfileIncomplete && (
             <Link to="/add-profile">
               <Button className="bg-gradient-to-r from-primary to-purple-500 hover:opacity-90">
                 <UserPlus className="w-4 h-4 mr-2" />

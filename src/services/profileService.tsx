@@ -101,6 +101,23 @@ export const uploadAvatar = async (userId: string, file: File): Promise<string |
     const fileName = `${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`;
     const filePath = `avatars/${fileName}`;
 
+    // First check if the avatars bucket exists, if not, create it
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const avatarBucketExists = buckets?.some(bucket => bucket.name === 'avatars');
+    
+    if (!avatarBucketExists) {
+      // Create the avatars bucket if it doesn't exist
+      const { error: createBucketError } = await supabase.storage.createBucket('avatars', {
+        public: true,
+        fileSizeLimit: 5242880, // 5MB
+      });
+      
+      if (createBucketError) {
+        console.error("Error creating avatars bucket:", createBucketError);
+        throw createBucketError;
+      }
+    }
+
     const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(filePath, file);
@@ -112,9 +129,6 @@ export const uploadAvatar = async (userId: string, file: File): Promise<string |
     const { data: { publicUrl } } = supabase.storage
       .from('avatars')
       .getPublicUrl(filePath);
-
-    // Update the user's profile with the new avatar URL
-    await updateUserProfile(userId, { avatar_url: publicUrl });
 
     return publicUrl;
   } catch (error: any) {
