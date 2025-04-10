@@ -7,3 +7,4 @@ export interface RpcParams {
   'increment_likes': { project_id: string };
   'decrement_likes': { project_id: string };
 }
+

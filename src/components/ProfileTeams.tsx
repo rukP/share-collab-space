@@ -4,7 +4,7 @@ import { Users } from "lucide-react";
 
 interface TeamsProps {
   teams: Array<{
-    id: number;
+    id: string | number;
     name: string;
     description: string;
     members: number;

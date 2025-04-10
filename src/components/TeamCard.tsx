@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 interface TeamCardProps {
-  id: number;
+  id: string | number;
   name: string;
   description: string;
   members: number;
