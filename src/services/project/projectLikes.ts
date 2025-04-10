@@ -1,101 +1,105 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { hotToast } from "@/components/ui/hot-toast";
+import { Heart } from "lucide-react";
 
-// Check if a user has liked a project
-export const checkProjectLike = async (projectId: string): Promise<boolean> => {
+// Toggle like status for a project
+export const likeProject = async (projectId: string) => {
   try {
+    // Get current user
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
-
-    const { data, error } = await supabase
+    
+    if (!user) {
+      hotToast({
+        title: "Authentication required",
+        description: "Please sign in to like projects",
+        variant: "warning",
+      });
+      return { success: false };
+    }
+    
+    // Check if the user has already liked the project
+    const { data: existingLike, error: checkError } = await supabase
       .from('project_likes')
       .select('*')
       .eq('project_id', projectId)
       .eq('user_id', user.id)
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      console.error("Error checking project like:", error);
-      return false;
+      .maybeSingle();
+      
+    if (checkError) {
+      console.error("Error checking like status:", checkError);
+      return { success: false };
     }
-
-    return !!data;
-  } catch (error) {
-    console.error("Error checking project like:", error);
-    return false;
-  }
-};
-
-// Toggle like/unlike a project
-export const toggleProjectLike = async (projectId: string): Promise<boolean> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
-
-    // Check if already liked
-    const isLiked = await checkProjectLike(projectId);
-
-    if (isLiked) {
-      // Unlike the project
-      const { error } = await supabase
+    
+    // If like exists, remove it
+    if (existingLike) {
+      const { error: unlikeError } = await supabase
         .from('project_likes')
         .delete()
         .eq('project_id', projectId)
         .eq('user_id', user.id);
-
-      if (error) {
-        console.error("Error unliking project:", error);
-        return false;
+        
+      if (unlikeError) {
+        console.error("Error unliking project:", unlikeError);
+        return { success: false };
       }
-
-      // Call RPC function to update like count in the projects table
-      await supabase.rpc('decrement_likes', { 
-        project_id: projectId 
+      
+      // Decrement the project's like count
+      const { error: updateError } = await supabase.rpc('decrement_likes', {
+        p_project_id: projectId
       });
-    } else {
-      // Like the project
-      const { error } = await supabase
+      
+      if (updateError) {
+        console.error("Error updating project likes count:", updateError);
+      }
+      
+      hotToast({
+        title: "Unliked",
+        description: "You have removed your like from this project",
+        variant: "default",
+      });
+      
+      return { success: true, action: 'unliked' };
+    } 
+    // If no like exists, add one
+    else {
+      const { error: likeError } = await supabase
         .from('project_likes')
-        .insert({ project_id: projectId, user_id: user.id });
-
-      if (error) {
-        console.error("Error liking project:", error);
-        return false;
+        .insert({
+          project_id: projectId,
+          user_id: user.id
+        });
+        
+      if (likeError) {
+        console.error("Error liking project:", likeError);
+        return { success: false };
       }
-
-      // Call RPC function to update like count in the projects table
-      await supabase.rpc('increment_likes', { 
-        project_id: projectId 
+      
+      // Increment the project's like count
+      const { error: updateError } = await supabase.rpc('increment_likes', {
+        p_project_id: projectId
       });
+      
+      if (updateError) {
+        console.error("Error updating project likes count:", updateError);
+      }
+      
+      hotToast({
+        title: "Liked!",
+        description: "You liked this project",
+        variant: "success",
+        icon: <Heart className="h-4 w-4 text-red-500 fill-red-500" />
+      });
+      
+      return { success: true, action: 'liked' };
     }
-
-    return true;
-  } catch (error) {
-    console.error("Error toggling project like:", error);
-    return false;
+  } catch (error: any) {
+    console.error("Error in likeProject:", error);
+    hotToast({
+      title: "Error",
+      description: error.message || "Failed to like/unlike project",
+      variant: "destructive",
+    });
+    return { success: false };
   }
 };
-
-// Get the number of likes for a project
-export const getProjectLikes = async (projectId: string): Promise<number> => {
-  try {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('likes')
-      .eq('id', projectId)
-      .single();
-
-    if (error) {
-      console.error("Error fetching project likes:", error);
-      return 0;
-    }
-
-    return data.likes || 0;
-  } catch (error) {
-    console.error("Error fetching project likes:", error);
-    return 0;
-  }
-};
-
-// Re-export the toggleProjectLike as likeProject to maintain compatibility
-export const likeProject = toggleProjectLike;
