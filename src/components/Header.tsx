@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { PlusCircle, User, Menu, X, Search, Users, LogOut } from "lucide-react";
+import { PlusCircle, User, Menu, X, Search, Users } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -9,7 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
-  const { isAuthenticated, signOut, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   return (
     <header className="border-b border-white/5 sticky top-0 bg-background/95 backdrop-blur-md z-50">
@@ -54,10 +54,6 @@ export const Header = () => {
                   Share Project
                 </Button>
               </Link>
-              <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground">
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
             </>
           )}
           
@@ -130,17 +126,6 @@ export const Header = () => {
                     Share Project
                   </Button>
                 </Link>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-center"
-                  onClick={() => {
-                    signOut();
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
               </>
             ) : (
               <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>

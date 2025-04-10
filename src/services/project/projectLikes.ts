@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { RpcFunctionName } from "@/integrations/supabase/rpcTypes";
+import { RpcFunctionName, RpcParams } from "@/integrations/supabase/rpcTypes";
 
 // Toggle project like status
 export const likeProject = async (projectId: string): Promise<{ isLiked: boolean }> => {
@@ -35,8 +35,8 @@ export const likeProject = async (projectId: string): Promise<{ isLiked: boolean
       }
 
       // Call RPC function to update like count in the projects table
-      const { error: rpcError } = await supabase.rpc<RpcFunctionName, 'decrement_likes'>(
-        'decrement_likes',
+      const { error: rpcError } = await supabase.rpc<RpcParams['decrement_likes'], any>(
+        'decrement_likes' as RpcFunctionName,
         { project_id: projectId }
       );
 
@@ -56,8 +56,8 @@ export const likeProject = async (projectId: string): Promise<{ isLiked: boolean
       }
 
       // Call RPC function to update like count in the projects table
-      const { error: rpcError } = await supabase.rpc<RpcFunctionName, 'increment_likes'>(
-        'increment_likes',
+      const { error: rpcError } = await supabase.rpc<RpcParams['increment_likes'], any>(
+        'increment_likes' as RpcFunctionName,
         { project_id: projectId }
       );
 
