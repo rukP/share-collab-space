@@ -1,24 +1,24 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { hotToast } from "@/components/ui/hot-toast";
-import { Heart } from "lucide-react";
+import { RpcFunctionName } from "@/integrations/supabase/rpcTypes";
 
-// Toggle like status for a project
-export const likeProject = async (projectId: string) => {
+/**
+ * Function to toggle a like on a project
+ * 
+ * @param projectId - The ID of the project to toggle like for
+ * @returns A boolean indicating whether the operation was successful
+ */
+export const likeProject = async (projectId: string): Promise<boolean> => {
   try {
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      hotToast({
-        title: "Authentication required",
-        description: "Please sign in to like projects",
-        variant: "warning",
-      });
-      return { success: false };
+      throw new Error('You must be logged in to like a project');
     }
     
-    // Check if the user has already liked the project
+    // Check if user has already liked this project
     const { data: existingLike, error: checkError } = await supabase
       .from('project_likes')
       .select('*')
@@ -27,79 +27,71 @@ export const likeProject = async (projectId: string) => {
       .maybeSingle();
       
     if (checkError) {
-      console.error("Error checking like status:", checkError);
-      return { success: false };
+      throw checkError;
     }
     
-    // If like exists, remove it
+    // Perform either like or unlike based on current state
     if (existingLike) {
+      // User already liked - remove like
       const { error: unlikeError } = await supabase
         .from('project_likes')
         .delete()
-        .eq('project_id', projectId)
-        .eq('user_id', user.id);
+        .eq('id', existingLike.id);
         
       if (unlikeError) {
-        console.error("Error unliking project:", unlikeError);
-        return { success: false };
+        throw unlikeError;
       }
       
-      // Decrement the project's like count
-      const { error: updateError } = await supabase.rpc('decrement_likes', {
-        p_project_id: projectId
-      });
+      // Call RPC function to decrement like count in projects table
+      await callLikeFunction('decrement_likes', projectId);
       
-      if (updateError) {
-        console.error("Error updating project likes count:", updateError);
-      }
-      
-      hotToast({
-        title: "Unliked",
-        description: "You have removed your like from this project",
-        variant: "default",
-      });
-      
-      return { success: true, action: 'unliked' };
-    } 
-    // If no like exists, add one
-    else {
+      return true;
+    } else {
+      // User hasn't liked - add like
       const { error: likeError } = await supabase
         .from('project_likes')
         .insert({
           project_id: projectId,
-          user_id: user.id
+          user_id: user.id,
         });
         
       if (likeError) {
-        console.error("Error liking project:", likeError);
-        return { success: false };
+        throw likeError;
       }
       
-      // Increment the project's like count
-      const { error: updateError } = await supabase.rpc('increment_likes', {
-        p_project_id: projectId
-      });
+      // Call RPC function to increment like count in projects table
+      await callLikeFunction('increment_likes', projectId);
       
-      if (updateError) {
-        console.error("Error updating project likes count:", updateError);
-      }
-      
-      hotToast({
-        title: "Liked!",
-        description: "You liked this project",
-        variant: "success",
-        icon: <Heart className="h-4 w-4 text-red-500 fill-red-500" />
-      });
-      
-      return { success: true, action: 'liked' };
+      return true;
     }
   } catch (error: any) {
-    console.error("Error in likeProject:", error);
+    console.error("Error toggling project like:", error);
     hotToast({
       title: "Error",
-      description: error.message || "Failed to like/unlike project",
-      variant: "destructive",
+      description: error.message || "Failed to like project",
+      variant: "destructive"
     });
-    return { success: false };
+    return false;
+  }
+};
+
+/**
+ * Helper function to call like-related functions in Supabase
+ */
+const callLikeFunction = async (
+  functionName: RpcFunctionName,
+  projectId: string
+): Promise<void> => {
+  try {
+    const { error } = await supabase.rpc(functionName, {
+      p_project_id: projectId
+    });
+    
+    if (error) {
+      throw error;
+    }
+  } catch (error: any) {
+    console.error(`Error calling ${functionName}:`, error);
+    throw error;
   }
 };
