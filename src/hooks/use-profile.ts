@@ -31,9 +31,10 @@ export const useProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       
+      // Get projects where user is on the team
       const { data, error } = await supabase
         .from('projects')
-        .select('id, title, description, image_url, likes')
+        .select('id, title, description, image_url, likes, status, created_at, team_id')
         .eq('team_id', user.id)
         .order('created_at', { ascending: false });
         
@@ -46,9 +47,11 @@ export const useProfile = () => {
         id: project.id,
         title: project.title,
         description: project.description,
-        imageUrl: project.image_url,
-        likes: project.likes,
+        imageUrl: project.image_url || "https://picsum.photos/seed/project/800/600",
+        likes: project.likes || 0,
         author: profileQuery.data?.name || 'User',
+        status: project.status as "open" | "closed" | "completed",
+        createdAt: project.created_at
       }));
     },
     enabled: !!profileQuery.data,
@@ -108,6 +111,8 @@ export const useProfile = () => {
   // Provide method to refresh profile data
   const refreshProfile = () => {
     queryClient.invalidateQueries({ queryKey: ['profile'] });
+    queryClient.invalidateQueries({ queryKey: ['userProjects'] });
+    queryClient.invalidateQueries({ queryKey: ['userTeams'] });
   };
 
   return {

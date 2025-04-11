@@ -1,28 +1,39 @@
 
-// This is a placeholder for SQL functions that need to be created in the database
-// For tracking likes, we need to execute the following SQL to create RPC functions:
+// This file contains SQL function definitions for the Supabase database
+// These should be run manually in the Supabase SQL editor
 
-/*
--- Function to increment the likes count for a project
-CREATE OR REPLACE FUNCTION increment_likes(project_id UUID)
-RETURNS void AS $$
-BEGIN
-  UPDATE projects
-  SET likes = COALESCE(likes, 0) + 1
-  WHERE id = project_id;
-END;
-$$ LANGUAGE plpgsql;
+/**
+ * Increment likes function
+ * SQL:
+ * ```
+ * CREATE OR REPLACE FUNCTION increment_likes(p_project_id UUID)
+ * RETURNS void
+ * LANGUAGE plpgsql
+ * SECURITY DEFINER
+ * AS $$
+ * BEGIN
+ *   UPDATE projects 
+ *   SET likes = COALESCE(likes, 0) + 1
+ *   WHERE id = p_project_id;
+ * END;
+ * $$;
+ * ```
+ */
 
--- Function to decrement the likes count for a project
-CREATE OR REPLACE FUNCTION decrement_likes(project_id UUID)
-RETURNS void AS $$
-BEGIN
-  UPDATE projects
-  SET likes = GREATEST(COALESCE(likes, 0) - 1, 0)
-  WHERE id = project_id;
-END;
-$$ LANGUAGE plpgsql;
-*/
-
-// The above SQL should be executed in the Supabase SQL editor
-// Then, these functions can be called using the supabase.rpc() method as used in projectService.ts
+/**
+ * Decrement likes function
+ * SQL:
+ * ```
+ * CREATE OR REPLACE FUNCTION decrement_likes(p_project_id UUID)
+ * RETURNS void
+ * LANGUAGE plpgsql
+ * SECURITY DEFINER
+ * AS $$
+ * BEGIN
+ *   UPDATE projects 
+ *   SET likes = GREATEST(COALESCE(likes, 0) - 1, 0)
+ *   WHERE id = p_project_id;
+ * END;
+ * $$;
+ * ```
+ */

@@ -1,31 +1,16 @@
 
-import { ProfileSidebar } from "@/components/ProfileSidebar";
-import { ProfileProjects } from "@/components/ProfileProjects";
-import { ProfileTeams } from "@/components/ProfileTeams";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-import { Profile } from "@/services/profileService";
+import { ProfileProjects } from "@/components/ProfileProjects";
+import { ProfileSidebar } from "@/components/ProfileSidebar";
+import { ProfileTeams } from "@/components/ProfileTeams";
 
 interface ProfileContentProps {
-  profile: Profile | null;
+  profile: any;
   isProfileLoading: boolean;
-  projects: Array<{
-    id: string | number;
-    title: string;
-    description: string;
-    imageUrl: string;
-    likes: number;
-    author: string;
-  }>;
+  projects: any[];
   isProjectsLoading: boolean;
-  teams: Array<{
-    id: string | number;
-    name: string;
-    description: string;
-    members: number;
-    openPositions: number;
-    createdAt: string;
-  }>;
+  teams: any[];
   isTeamsLoading: boolean;
 }
 
@@ -37,39 +22,47 @@ export const ProfileContent = ({
   teams,
   isTeamsLoading
 }: ProfileContentProps) => {
+  const [activeTab, setActiveTab] = useState("projects");
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
       <div className="lg:col-span-1">
         <ProfileSidebar profile={profile} isLoading={isProfileLoading} />
       </div>
       
       <div className="lg:col-span-3">
-        <Tabs defaultValue="projects" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="teams">Teams</TabsTrigger>
+        <Tabs defaultValue="projects" onValueChange={setActiveTab} value={activeTab}>
+          <TabsList className="mb-6 bg-card">
+            <TabsTrigger value="projects" className="flex-1 relative">
+              Projects
+              {projects.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary">
+                  {projects.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="teams" className="flex-1 relative">
+              Teams
+              {teams.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary">
+                  {teams.length}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
+          
           <TabsContent value="projects">
-            {isProjectsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[1, 2].map(i => (
-                  <Card key={i} className="h-64 animate-pulse bg-primary/5" />
-                ))}
-              </div>
-            ) : (
-              <ProfileProjects projects={projects} />
-            )}
+            <ProfileProjects 
+              projects={projects} 
+              isLoading={isProjectsLoading} 
+            />
           </TabsContent>
+          
           <TabsContent value="teams">
-            {isTeamsLoading ? (
-              <div className="space-y-4">
-                {[1, 2].map(i => (
-                  <Card key={i} className="h-24 animate-pulse bg-primary/5" />
-                ))}
-              </div>
-            ) : (
-              <ProfileTeams teams={teams} />
-            )}
+            <ProfileTeams 
+              teams={teams} 
+              isLoading={isTeamsLoading}
+            />
           </TabsContent>
         </Tabs>
       </div>

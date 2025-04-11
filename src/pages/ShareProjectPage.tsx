@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,21 +7,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { Upload, X, Image, Plus, Tag, Check } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { hotToast } from "@/components/ui/hot-toast";
+import { useNavigate } from "react-router-dom";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
+import { supabase } from "@/integrations/supabase/client";
 
 const ShareProjectPage = () => {
-  const { isLoading } = useProtectedRoute();
+  const { isLoading, userId } = useProtectedRoute();
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState("");
   const [course, setCourse] = useState("");
-  const { toast } = useToast();
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -29,6 +32,7 @@ const ShareProjectPage = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -41,6 +45,7 @@ const ShareProjectPage = () => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("image/")) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -50,6 +55,7 @@ const ShareProjectPage = () => {
   };
 
   const clearImage = () => {
+    setImageFile(null);
     setImagePreview(null);
   };
 
@@ -64,15 +70,102 @@ const ShareProjectPage = () => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Check if the projects bucket exists, if not create it
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const projectsBucketExists = buckets?.some(bucket => bucket.name === 'projects');
+      
+      if (!projectsBucketExists) {
+        console.log("Creating projects bucket");
+        const { error: createBucketError } = await supabase.storage.createBucket('projects', {
+          public: true,
+          fileSizeLimit: 10485760, // 10MB
+        });
+        
+        if (createBucketError) {
+          console.error("Error creating projects bucket:", createBucketError);
+          throw createBucketError;
+        }
+      }
+
+      // Upload the file to the projects bucket
+      const { error: uploadError } = await supabase.storage
+        .from('projects')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw uploadError;
+      }
+
+      // Get the public URL for the uploaded file
+      const { data: { publicUrl } } = supabase.storage
+        .from('projects')
+        .getPublicUrl(filePath);
+
+      console.log("Project image uploaded successfully, public URL:", publicUrl);
+      return publicUrl;
+    } catch (error: any) {
+      console.error("Error uploading project image:", error);
+      hotToast({
+        title: "Error",
+        description: `Failed to upload image: ${error.message}`,
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      
-      // Use hotToast instead of regular toast
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('You must be logged in to share a project');
+      }
+
+      // Upload image if provided
+      let imageUrl = null;
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+        if (!imageUrl) {
+          throw new Error('Failed to upload image');
+        }
+      }
+
+      // Get team_id from user's profile (assuming user is the team for now)
+      const teamId = user.id;
+
+      // Store project in database
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .insert({
+          title,
+          description,
+          team_id: teamId,
+          image_url: imageUrl,
+          status: 'open',
+          // Store tags as metadata in the description for now
+          // In a real app, you'd create a separate tags table
+        })
+        .select()
+        .single();
+
+      if (projectError) {
+        throw projectError;
+      }
+
       hotToast({
         title: "Success!",
         description: "Your project has been shared with the community.",
@@ -80,13 +173,23 @@ const ShareProjectPage = () => {
         icon: <Check className="h-4 w-4 text-green-500" />
       });
       
-      // Reset form
-      setTitle("");
-      setDescription("");
-      setImagePreview(null);
-      setTags([]);
-      setCourse("");
-    }, 1500);
+      // Navigate to the project details page
+      navigate(`/projects/${project.id}`);
+    } catch (error: any) {
+      console.error("Error sharing project:", error);
+      hotToast({
+        title: "Error",
+        description: error.message || "Failed to share project",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleImageClick = () => {
+    // Trigger the hidden file input
+    document.getElementById('image')?.click();
   };
 
   return (
@@ -212,6 +315,7 @@ const ShareProjectPage = () => {
                       className="border-2 border-dashed border-primary/30 rounded-lg p-8 text-center transition-colors hover:border-primary/50 cursor-pointer"
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={handleDrop}
+                      onClick={handleImageClick}
                     >
                       <Image className="w-12 h-12 mx-auto mb-4 text-primary/70" />
                       <p className="mb-2 text-muted-foreground">
@@ -238,8 +342,9 @@ const ShareProjectPage = () => {
                   type="button" 
                   variant="outline"
                   className="border-primary/20"
+                  onClick={() => navigate('/profile')}
                 >
-                  Save as Draft
+                  Cancel
                 </Button>
                 <Button 
                   type="submit" 

@@ -1,17 +1,35 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
-export const useProtectedRoute = (redirectTo: string = "/auth") => {
-  const { isAuthenticated, isLoading } = useAuth();
+export const useProtectedRoute = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      navigate(redirectTo);
-    }
-  }, [isAuthenticated, isLoading, navigate, redirectTo]);
+    const checkAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const session = data.session;
 
-  return { isAuthenticated, isLoading };
+        if (!session) {
+          navigate("/auth", { replace: true });
+          return;
+        }
+
+        setUserId(session.user.id);
+      } catch (error) {
+        console.error("Auth error:", error);
+        navigate("/auth", { replace: true });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  return { isLoading, userId };
 };
