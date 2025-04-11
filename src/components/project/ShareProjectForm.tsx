@@ -1,15 +1,16 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, X, Image, Plus, Tag, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { hotToast } from "@/components/ui/hot-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { uploadProjectImage, createProject } from "@/services/project/uploadProject";
+import { ImageUpload } from "./ImageUpload";
+import { ProjectTagInput } from "./ProjectTagInput";
 
 interface ShareProjectFormProps {
   userId: string;
@@ -23,25 +24,10 @@ export const ShareProjectForm = ({ userId }: ShareProjectFormProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
-  const [currentTag, setCurrentTag] = useState("");
   const [course, setCourse] = useState("");
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleImageChange = (file: File | null) => {
     if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -56,10 +42,9 @@ export const ShareProjectForm = ({ userId }: ShareProjectFormProps) => {
     setImagePreview(null);
   };
 
-  const addTag = () => {
-    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
-      setTags([...tags, currentTag.trim()]);
-      setCurrentTag("");
+  const addTag = (tag: string) => {
+    if (tag.trim() && !tags.includes(tag.trim())) {
+      setTags([...tags, tag.trim()]);
     }
   };
 
@@ -67,105 +52,25 @@ export const ShareProjectForm = ({ userId }: ShareProjectFormProps) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  const handleImageClick = () => {
-    // Trigger the hidden file input
-    document.getElementById('image')?.click();
-  };
-
-  const uploadImage = async (file: File): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}-${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      // Check if the projects bucket exists, if not create it
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const projectsBucketExists = buckets?.some(bucket => bucket.name === 'projects');
-      
-      if (!projectsBucketExists) {
-        console.log("Creating projects bucket");
-        const { error: createBucketError } = await supabase.storage.createBucket('projects', {
-          public: true,
-          fileSizeLimit: 10485760, // 10MB
-        });
-        
-        if (createBucketError) {
-          console.error("Error creating projects bucket:", createBucketError);
-          throw createBucketError;
-        }
-      }
-
-      // Upload the file to the projects bucket
-      const { error: uploadError } = await supabase.storage
-        .from('projects')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw uploadError;
-      }
-
-      // Get the public URL for the uploaded file
-      const { data: { publicUrl } } = supabase.storage
-        .from('projects')
-        .getPublicUrl(filePath);
-
-      console.log("Project image uploaded successfully, public URL:", publicUrl);
-      return publicUrl;
-    } catch (error: any) {
-      console.error("Error uploading project image:", error);
-      hotToast({
-        title: "Error",
-        description: `Failed to upload image: ${error.message}`,
-        variant: "destructive"
-      });
-      return null;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('You must be logged in to share a project');
-      }
-
       // Upload image if provided
       let imageUrl = null;
       if (imageFile) {
-        imageUrl = await uploadImage(imageFile);
+        imageUrl = await uploadProjectImage(userId, imageFile);
         if (!imageUrl) {
           throw new Error('Failed to upload image');
         }
       }
 
-      // Get team_id from user's profile (assuming user is the team for now)
-      const teamId = user.id;
-
-      // Store project in database
-      const { data: project, error: projectError } = await supabase
-        .from('projects')
-        .insert({
-          title,
-          description,
-          team_id: teamId,
-          image_url: imageUrl,
-          status: 'open',
-          // Store tags as metadata in the description for now
-          // In a real app, you'd create a separate tags table
-        })
-        .select()
-        .single();
-
-      if (projectError) {
-        throw projectError;
+      // Create project
+      const project = await createProject(title, description, userId, imageUrl, tags);
+      
+      if (!project) {
+        throw new Error('Failed to create project');
       }
 
       hotToast({
@@ -235,94 +140,20 @@ export const ShareProjectForm = ({ userId }: ShareProjectFormProps) => {
           
           <div className="space-y-2">
             <Label>Project Tags</Label>
-            <div className="flex gap-2">
-              <Input 
-                placeholder="Add tags (e.g., Design, Interactive)" 
-                value={currentTag}
-                onChange={(e) => setCurrentTag(e.target.value)}
-                className="border-primary/20 focus-visible:ring-primary"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addTag();
-                  }
-                }}
-              />
-              <Button 
-                type="button" 
-                onClick={addTag}
-                variant="outline"
-                className="border-primary/20"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {tags.map((tag, index) => (
-                  <Badge 
-                    key={index} 
-                    className="px-3 py-1 bg-primary/10 hover:bg-primary/20 text-foreground"
-                  >
-                    <Tag className="w-3 h-3 mr-1" />
-                    {tag}
-                    <button 
-                      type="button" 
-                      className="ml-2 text-foreground/70 hover:text-foreground"
-                      onClick={() => removeTag(tag)}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
+            <ProjectTagInput 
+              tags={tags} 
+              onAddTag={addTag} 
+              onRemoveTag={removeTag} 
+            />
           </div>
           
           <div className="space-y-2">
             <Label>Project Cover Image</Label>
-            {imagePreview ? (
-              <div className="relative mt-2 border rounded-lg overflow-hidden">
-                <img 
-                  src={imagePreview} 
-                  alt="Preview" 
-                  className="w-full h-64 object-cover" 
-                />
-                <Button 
-                  type="button"
-                  variant="destructive" 
-                  size="icon" 
-                  className="absolute top-2 right-2 opacity-90" 
-                  onClick={clearImage}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            ) : (
-              <div 
-                className="border-2 border-dashed border-primary/30 rounded-lg p-8 text-center transition-colors hover:border-primary/50 cursor-pointer"
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                onClick={handleImageClick}
-              >
-                <Image className="w-12 h-12 mx-auto mb-4 text-primary/70" />
-                <p className="mb-2 text-muted-foreground">
-                  Drag and drop an image, or click to browse
-                </p>
-                <Input 
-                  id="image" 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-                <Label htmlFor="image" className="cursor-pointer">
-                  <Button type="button" variant="outline" className="border-primary/20">
-                    Select Image
-                  </Button>
-                </Label>
-              </div>
-            )}
+            <ImageUpload 
+              imagePreview={imagePreview}
+              onImageChange={handleImageChange}
+              clearImage={clearImage}
+            />
           </div>
         </CardContent>
         <CardFooter className="flex justify-between border-t p-6">

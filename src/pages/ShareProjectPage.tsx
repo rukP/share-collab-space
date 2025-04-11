@@ -1,7 +1,6 @@
 
 import { Header } from "@/components/Header";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 import { ShareProjectForm } from "@/components/project/ShareProjectForm";
 

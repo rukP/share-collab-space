@@ -1,18 +1,18 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { hotToast } from "@/components/ui/hot-toast";
-import { Check } from "lucide-react";
-import { Project } from "./types";
 
-export interface ProjectUploadData {
-  title: string;
-  description: string;
-  teamId: string;
-  imageUrl?: string | null;
-  tags?: string[];
-}
-
-export const uploadProjectImage = async (file: File, userId: string): Promise<string | null> => {
+/**
+ * Upload a project image to Supabase Storage
+ * 
+ * @param userId - The ID of the user uploading the file
+ * @param file - The file to upload
+ * @returns A Promise that resolves to the public URL of the uploaded file or null if there was an error
+ */
+export const uploadProjectImage = async (
+  userId: string,
+  file: File
+): Promise<string | null> => {
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}-${Date.now()}.${fileExt}`;
@@ -66,37 +66,33 @@ export const uploadProjectImage = async (file: File, userId: string): Promise<st
   }
 };
 
+/**
+ * Stores a new project in the database
+ * 
+ * @param title - Project title
+ * @param description - Project description
+ * @param userId - The ID of the user creating the project
+ * @param imageUrl - Optional URL of the project image
+ * @param tags - Optional array of tags for the project
+ * @returns A Promise that resolves to the created project or null if there was an error
+ */
 export const createProject = async (
-  projectData: ProjectUploadData,
-  imageFile: File | null
-): Promise<Project | null> => {
+  title: string,
+  description: string,
+  userId: string,
+  imageUrl: string | null,
+  tags?: string[]
+) => {
   try {
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('You must be logged in to share a project');
-    }
-
-    // Upload image if provided
-    let imageUrl = projectData.imageUrl || null;
-    if (imageFile) {
-      imageUrl = await uploadProjectImage(imageFile, user.id);
-      if (!imageUrl) {
-        throw new Error('Failed to upload image');
-      }
-    }
-
     // Store project in database
     const { data: project, error: projectError } = await supabase
       .from('projects')
       .insert({
-        title: projectData.title,
-        description: projectData.description,
-        team_id: projectData.teamId || user.id,
+        title,
+        description,
+        team_id: userId, // Using user ID as team ID for now
         image_url: imageUrl,
-        status: 'open',
-        // Store tags as metadata in the description for now
-        // In a real app, you'd create a separate tags table
+        status: 'open'
       })
       .select()
       .single();
@@ -105,23 +101,12 @@ export const createProject = async (
       throw projectError;
     }
 
-    hotToast({
-      title: "Success!",
-      description: "Your project has been shared with the community.",
-      variant: "success",
-      icon: <Check className="h-4 w-4 text-green-500" />
-    });
-    
-    // Cast the status to the proper type and return the created project
-    return {
-      ...project,
-      status: project.status as 'open' | 'closed' | 'completed'
-    };
+    return project;
   } catch (error: any) {
     console.error("Error creating project:", error);
     hotToast({
       title: "Error",
-      description: error.message || "Failed to share project",
+      description: error.message || "Failed to create project",
       variant: "destructive"
     });
     return null;
