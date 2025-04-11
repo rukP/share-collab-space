@@ -1,9 +1,23 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Profile, getCurrentProfile } from "@/services/profileService";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export const useProfile = () => {
+  const queryClient = useQueryClient();
+  
+  // Set up auth state listener to invalidate queries when auth changes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['userProjects'] });
+      queryClient.invalidateQueries({ queryKey: ['userTeams'] });
+    });
+
+    return () => subscription.unsubscribe();
+  }, [queryClient]);
+
   // Fetch user profile data
   const profileQuery = useQuery({
     queryKey: ['profile'],
@@ -91,6 +105,11 @@ export const useProfile = () => {
     !profileQuery.data.bio || 
     !profileQuery.data.avatar_url;
 
+  // Provide method to refresh profile data
+  const refreshProfile = () => {
+    queryClient.invalidateQueries({ queryKey: ['profile'] });
+  };
+
   return {
     profile: profileQuery.data,
     isProfileLoading: profileQuery.isLoading,
@@ -98,6 +117,7 @@ export const useProfile = () => {
     isProjectsLoading: projectsQuery.isLoading,
     teams: teamsQuery.data || [],
     isTeamsLoading: teamsQuery.isLoading,
-    isProfileIncomplete
+    isProfileIncomplete,
+    refreshProfile
   };
 };

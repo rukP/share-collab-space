@@ -99,9 +99,9 @@ export const uploadAvatar = async (userId: string, file: File): Promise<string |
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `avatars/${fileName}`;
+    const filePath = `${fileName}`;
 
-    // First check if the avatars bucket exists, if not, create it
+    // Check if the avatars bucket exists, if not, create it
     const { data: buckets } = await supabase.storage.listBuckets();
     const avatarBucketExists = buckets?.some(bucket => bucket.name === 'avatars');
     

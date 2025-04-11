@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Upload, X } from "lucide-react";
+import { hotToast } from "@/components/ui/hot-toast";
 
 interface AvatarUploadProps {
   avatarUrl: string | null;
@@ -16,6 +17,27 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange }: AvatarUploadProps) =
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        hotToast({
+          title: "Invalid file type",
+          description: "Please upload a JPG, PNG, or GIF image",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        hotToast({
+          title: "File too large",
+          description: "Please upload an image smaller than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       onAvatarChange(file);
       const reader = new FileReader();
       reader.onloadend = () => {

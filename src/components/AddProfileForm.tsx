@@ -13,6 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 import { AvatarUpload } from "./profile/AvatarUpload";
 import { ProfileBasicInfo } from "./profile/ProfileBasicInfo";
 import { ProfileBioField } from "./profile/ProfileBioField";
+import { useProfile } from "@/hooks/use-profile";
 
 // Form schema for validation
 const profileSchema = z.object({
@@ -33,6 +34,7 @@ const AddProfileForm = () => {
   const [existingProfile, setExistingProfile] = useState<Profile | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { refreshProfile } = useProfile();
 
   // Initialize form with react-hook-form
   const form = useForm<ProfileFormValues>({
@@ -97,7 +99,10 @@ const AddProfileForm = () => {
       // Upload avatar if selected
       let avatarUrl = existingProfile?.avatar_url;
       if (avatarFile) {
-        avatarUrl = await uploadAvatar(user.id, avatarFile);
+        const newAvatarUrl = await uploadAvatar(user.id, avatarFile);
+        if (newAvatarUrl) {
+          avatarUrl = newAvatarUrl;
+        }
       }
 
       // Update profile
@@ -106,11 +111,8 @@ const AddProfileForm = () => {
         avatar_url: avatarUrl,
       });
 
-      hotToast({
-        title: "Success",
-        description: "Your profile has been updated successfully!",
-        variant: "success",
-      });
+      // Refresh profile data to ensure UI is updated
+      refreshProfile();
 
       // Navigate back to profile page
       navigate("/profile");
