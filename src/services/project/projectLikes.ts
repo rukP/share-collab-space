@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { hotToast } from "@/components/ui/hot-toast";
+import { RpcFunctionName } from "@/integrations/supabase/rpcTypes";
 
 /**
  * Function to toggle a like on a project
@@ -78,7 +79,7 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
  * Helper function to call like-related functions in Supabase
  */
 const callLikeFunction = async (
-  functionName: 'increment_likes' | 'decrement_likes',
+  functionName: RpcFunctionName,
   projectId: string
 ): Promise<void> => {
   try {
