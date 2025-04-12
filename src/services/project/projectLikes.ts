@@ -83,10 +83,12 @@ const callLikeFunction = async (
   projectId: string
 ): Promise<void> => {
   try {
+    // Create the correctly typed parameters object
     const params: RpcParams[typeof functionName] = {
       p_project_id: projectId
     };
     
+    // Call the RPC function with the typed parameters
     const { error } = await supabase.rpc(functionName, params);
     
     if (error) {
