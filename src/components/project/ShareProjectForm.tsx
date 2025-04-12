@@ -3,14 +3,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { hotToast } from "@/components/ui/hot-toast";
 import { uploadProjectImage, createProject } from "@/services/project/uploadProject";
-import { ImageUpload } from "./ImageUpload";
-import { ProjectTagInput } from "./ProjectTagInput";
+import { TitleField } from "./form-fields/TitleField";
+import { CourseField } from "./form-fields/CourseField";
+import { DescriptionField } from "./form-fields/DescriptionField";
+import { TagsField } from "./form-fields/TagsField";
+import { ImageField } from "./form-fields/ImageField";
+import { FormActions } from "./form-fields/FormActions";
 
 interface ShareProjectFormProps {
   userId: string;
@@ -50,6 +50,10 @@ export const ShareProjectForm = ({ userId }: ShareProjectFormProps) => {
 
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleCancel = () => {
+    navigate('/profile');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,77 +105,18 @@ export const ShareProjectForm = ({ userId }: ShareProjectFormProps) => {
           <h3 className="text-2xl font-semibold">Project Details</h3>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="title">Project Title</Label>
-            <Input 
-              id="title" 
-              placeholder="Enter your project title" 
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="border-primary/20 focus-visible:ring-primary"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="course">Course</Label>
-            <Input 
-              id="course" 
-              placeholder="Your program or course" 
-              value={course}
-              onChange={(e) => setCourse(e.target.value)}
-              className="border-primary/20 focus-visible:ring-primary"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Project Description</Label>
-            <Textarea 
-              id="description" 
-              placeholder="Describe your project in detail..." 
-              rows={5}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="border-primary/20 focus-visible:ring-primary resize-y"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Project Tags</Label>
-            <ProjectTagInput 
-              tags={tags} 
-              onAddTag={addTag} 
-              onRemoveTag={removeTag} 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Project Cover Image</Label>
-            <ImageUpload 
-              imagePreview={imagePreview}
-              onImageChange={handleImageChange}
-              clearImage={clearImage}
-            />
-          </div>
+          <TitleField title={title} setTitle={setTitle} />
+          <CourseField course={course} setCourse={setCourse} />
+          <DescriptionField description={description} setDescription={setDescription} />
+          <TagsField tags={tags} onAddTag={addTag} onRemoveTag={removeTag} />
+          <ImageField 
+            imagePreview={imagePreview} 
+            onImageChange={handleImageChange} 
+            clearImage={clearImage} 
+          />
         </CardContent>
-        <CardFooter className="flex justify-between border-t p-6">
-          <Button 
-            type="button" 
-            variant="outline"
-            className="border-primary/20"
-            onClick={() => navigate('/profile')}
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="bg-gradient-to-r from-primary to-purple-500 hover:opacity-90"
-          >
-            {isSubmitting ? "Sharing..." : "Share Project"}
-          </Button>
+        <CardFooter>
+          <FormActions isSubmitting={isSubmitting} onCancel={handleCancel} />
         </CardFooter>
       </form>
     </Card>
