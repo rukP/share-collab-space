@@ -11,9 +11,28 @@ interface TeamsProps {
     openPositions: number;
     createdAt: string;
   }>;
+  isLoading?: boolean;
 }
 
-export const ProfileTeams = ({ teams }: TeamsProps) => {
+export const ProfileTeams = ({ teams, isLoading }: TeamsProps) => {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 gap-4">
+        {[1, 2].map((i) => (
+          <Card key={i} className="mb-4">
+            <CardContent className="p-4">
+              <div className="animate-pulse space-y-3">
+                <div className="h-5 bg-primary/20 rounded w-1/3"></div>
+                <div className="h-4 bg-primary/10 rounded w-full"></div>
+                <div className="h-4 bg-primary/10 rounded w-1/2"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <>
       {teams.map((team) => (
