@@ -8,3 +8,14 @@ export interface RpcParams {
   'decrement_likes': { p_project_id: string };
   'get_user_team_ids': { user_id: string };
 }
+
+// Type-safe RPC function caller
+export function typedRpc<T extends RpcFunctionName>(
+  functionName: T,
+  params: RpcParams[T]
+) {
+  return {
+    functionName,
+    params,
+  };
+}
