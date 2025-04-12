@@ -57,7 +57,7 @@ export const useProfile = () => {
     enabled: !!profileQuery.data,
   });
 
-  // Fetch user's teams - using the security definer function to avoid infinite recursion
+  // Fetch user's teams - direct query to avoid the RPC function
   const teamsQuery = useQuery({
     queryKey: ['userTeams'],
     queryFn: async () => {
@@ -65,16 +65,20 @@ export const useProfile = () => {
       if (!user) return [];
       
       try {
-        // Use direct query without joins to prevent infinite recursion
-        const { data: teamIds, error: teamIdsError } = await supabase
-          .rpc('get_user_team_ids', { user_id: user.id });
+        // Get team IDs directly from team_members table
+        const { data: teamMembers, error: teamMembersError } = await supabase
+          .from('team_members')
+          .select('team_id')
+          .eq('user_id', user.id);
           
-        if (teamIdsError) {
-          console.error("Error fetching team IDs:", teamIdsError);
+        if (teamMembersError) {
+          console.error("Error fetching team members:", teamMembersError);
           return [];
         }
         
-        if (!teamIds?.length) return [];
+        if (!teamMembers?.length) return [];
+        
+        const teamIds = teamMembers.map(tm => tm.team_id);
         
         // Get team details
         const { data, error } = await supabase

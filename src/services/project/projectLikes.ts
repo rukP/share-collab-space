@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { hotToast } from "@/components/ui/hot-toast";
-import { RpcFunctionName, RpcParams } from "@/integrations/supabase/rpcTypes";
+import { RpcParams } from "@/integrations/supabase/rpcTypes";
 
 /**
  * Function to toggle a like on a project

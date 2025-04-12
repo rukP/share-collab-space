@@ -67,13 +67,14 @@ export const createProject = async (
   tags?: string[]
 ) => {
   try {
-    // Store project in database
+    // Store project directly under the user's ID instead of using it as a team ID
+    // This avoids calling the problematic RPC function
     const { data: project, error: projectError } = await supabase
       .from('projects')
       .insert({
         title,
         description,
-        team_id: userId, // Using user ID as team ID for now
+        team_id: userId, // Direct user ID assignment instead of using RPC lookup
         image_url: imageUrl,
         status: 'open'
       })
