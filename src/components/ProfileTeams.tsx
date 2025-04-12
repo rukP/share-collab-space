@@ -1,8 +1,11 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { formatDistance } from "date-fns";
 
-interface TeamsProps {
+interface TeamProps {
   teams: Array<{
     id: string | number;
     name: string;
@@ -14,7 +17,7 @@ interface TeamsProps {
   isLoading?: boolean;
 }
 
-export const ProfileTeams = ({ teams, isLoading }: TeamsProps) => {
+export const ProfileTeams = ({ teams, isLoading }: TeamProps) => {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 gap-4">
@@ -36,15 +39,23 @@ export const ProfileTeams = ({ teams, isLoading }: TeamsProps) => {
   return (
     <>
       {teams.map((team) => (
-        <Card key={team.id} className="mb-4">
+        <Card key={team.id} className="mb-4 hover:shadow-sm transition-shadow">
           <CardContent className="p-4">
-            <h3 className="text-xl font-semibold">{team.name}</h3>
-            <p className="text-muted-foreground">{team.description}</p>
-            <div className="flex mt-2 text-sm">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-xl font-semibold">{team.name}</h3>
+              <Link to={`/teams/${team.id}`}>
+                <Button size="sm" variant="outline">View Team</Button>
+              </Link>
+            </div>
+            <p className="text-muted-foreground mb-3 line-clamp-2">{team.description}</p>
+            <div className="flex justify-between items-center text-sm">
               <div className="flex items-center gap-1 text-muted-foreground">
                 <Users className="w-4 h-4" />
-                {team.members} members
+                {team.members} {team.members === 1 ? "member" : "members"}
               </div>
+              <span className="text-xs text-muted-foreground">
+                Created {formatDistance(new Date(team.createdAt), new Date(), { addSuffix: true })}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -52,6 +63,11 @@ export const ProfileTeams = ({ teams, isLoading }: TeamsProps) => {
       {teams.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           Not a member of any teams yet.
+          <div className="mt-4">
+            <Link to="/teams">
+              <Button>Explore Teams</Button>
+            </Link>
+          </div>
         </div>
       )}
     </>

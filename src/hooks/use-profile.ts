@@ -57,7 +57,7 @@ export const useProfile = () => {
     enabled: !!profileQuery.data,
   });
 
-  // Fetch user's teams - direct query to avoid the RPC function
+  // Fetch user's teams 
   const teamsQuery = useQuery({
     queryKey: ['userTeams'],
     queryFn: async () => {
@@ -91,14 +91,36 @@ export const useProfile = () => {
           return [];
         }
         
-        return data.map(team => ({
-          id: team.id,
-          name: team.name,
-          description: team.description,
-          members: 0, // Could fetch this with a separate query if needed
-          openPositions: 0, // Could fetch this with a separate query if needed
-          createdAt: team.created_at,
+        // For each team, count the number of members
+        const teamsWithMemberCounts = await Promise.all(data.map(async team => {
+          const { count, error: countError } = await supabase
+            .from('team_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('team_id', team.id);
+            
+          if (countError) {
+            console.error("Error counting team members:", countError);
+            return {
+              id: team.id,
+              name: team.name,
+              description: team.description || 'No description provided',
+              members: 0,
+              openPositions: 0,
+              createdAt: team.created_at,
+            };
+          }
+          
+          return {
+            id: team.id,
+            name: team.name,
+            description: team.description || 'No description provided',
+            members: count || 0,
+            openPositions: 0, // This could be fetched from another table if you implement it
+            createdAt: team.created_at,
+          };
         }));
+        
+        return teamsWithMemberCounts;
       } catch (error) {
         console.error("Error in teamsQuery:", error);
         return [];

@@ -84,7 +84,7 @@ const callLikeFunction = async (
 ): Promise<void> => {
   try {
     // Create the correctly typed parameters object
-    const params: RpcParams[typeof functionName] = {
+    const params = {
       p_project_id: projectId
     };
     

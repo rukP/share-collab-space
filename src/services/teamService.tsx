@@ -143,6 +143,11 @@ export const joinTeam = async (teamId: string, userId: string, role: string = "m
 // Helper function to create a team
 export const createTeam = async (name: string, description: string, logoUrl?: string): Promise<Team | null> => {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error("You must be logged in to create a team");
+    }
+
     const { data, error } = await supabase
       .from("teams")
       .insert([
@@ -163,7 +168,7 @@ export const createTeam = async (name: string, description: string, logoUrl?: st
     const { error: memberError } = await supabase.from("team_members").insert([
       {
         team_id: data.id,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+        user_id: user.id,
         role: "admin",
       },
     ]);
@@ -188,5 +193,78 @@ export const createTeam = async (name: string, description: string, logoUrl?: st
     });
     console.error("Error creating team:", error);
     return null;
+  }
+};
+
+// Helper function to upload team logo
+export const uploadTeamLogo = async (
+  userId: string,
+  file: File
+): Promise<string | null> => {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `team-logo-${userId}-${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    // Upload the file to the projects bucket (bucket already exists from the SQL migration)
+    const { error: uploadError } = await supabase.storage
+      .from('teams')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (uploadError) {
+      console.error("Upload error:", uploadError);
+      throw uploadError;
+    }
+
+    // Get the public URL for the uploaded file
+    const { data: { publicUrl } } = supabase.storage
+      .from('teams')
+      .getPublicUrl(filePath);
+
+    console.log("Team logo uploaded successfully, public URL:", publicUrl);
+    return publicUrl;
+  } catch (error: any) {
+    console.error("Error uploading team logo:", error);
+    hotToast({
+      title: "Error",
+      description: `Failed to upload image: ${error.message}`,
+      variant: "destructive"
+    });
+    return null;
+  }
+};
+
+// Helper function to leave a team
+export const leaveTeam = async (teamId: string, userId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from("team_members")
+      .delete()
+      .eq("team_id", teamId)
+      .eq("user_id", userId);
+
+    if (error) {
+      throw error;
+    }
+
+    hotToast({
+      title: "Success",
+      description: "You have left the team",
+      variant: "success",
+      icon: <Check className="h-4 w-4 text-green-500" />
+    });
+
+    return true;
+  } catch (error: any) {
+    hotToast({
+      title: "Error",
+      description: `Failed to leave team: ${error.message}`,
+      variant: "destructive"
+    });
+    console.error("Error leaving team:", error);
+    return false;
   }
 };

@@ -1,5 +1,5 @@
 
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
@@ -15,45 +15,136 @@ import {
   Github, 
   ExternalLink,
   MessageSquare,
-  ArrowLeft
+  ArrowLeft,
+  UserMinus
 } from "lucide-react";
-import { MOCK_TEAMS } from "@/data/mockData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getTeamById, getTeamMembers, joinTeam, leaveTeam } from "@/services/teamService";
+import { supabase } from "@/integrations/supabase/client";
+import { hotToast } from "@/components/ui/hot-toast";
 
 const TeamDetailsPage = () => {
-  const { id } = useParams();
-  const [team, setTeam] = useState<any>(null);
+  const { id } = useParams<{ id: string }>();
   const [isJoining, setIsJoining] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isCurrentUserMember, setIsCurrentUserMember] = useState(false);
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
+  const {
+    data: team,
+    isLoading: isTeamLoading,
+    error: teamError
+  } = useQuery({
+    queryKey: ['team', id],
+    queryFn: () => (id ? getTeamById(id) : null),
+    enabled: !!id
+  });
+
+  const {
+    data: members,
+    isLoading: isMembersLoading,
+    error: membersError
+  } = useQuery({
+    queryKey: ['team-members', id],
+    queryFn: () => (id ? getTeamMembers(id) : []),
+    enabled: !!id
+  });
+
+  // Get current user
   useEffect(() => {
-    // In a real app, this would be an API call
-    if (id) {
-      const foundTeam = MOCK_TEAMS.find(team => team.id === parseInt(id));
-      if (foundTeam) {
-        setTeam(foundTeam);
-      }
-    }
-  }, [id]);
+    const checkCurrentUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setCurrentUserId(data.user?.id || null);
+    };
+    
+    checkCurrentUser();
+  }, []);
 
-  const handleJoinTeam = () => {
+  // Check if current user is a member
+  useEffect(() => {
+    if (currentUserId && members) {
+      const userIsMember = members.some(member => member.user_id === currentUserId);
+      setIsCurrentUserMember(userIsMember);
+    }
+  }, [currentUserId, members]);
+
+  // Handle join team
+  const handleJoinTeam = async () => {
+    if (!id || !currentUserId) {
+      hotToast({
+        title: "Error",
+        description: "You must be logged in to join a team",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsJoining(true);
-    // Simulate API call
-    setTimeout(() => {
+    
+    try {
+      const success = await joinTeam(id, currentUserId);
+      
+      if (success) {
+        // Refresh team members data
+        queryClient.invalidateQueries({ queryKey: ['team-members', id] });
+        setIsCurrentUserMember(true);
+      }
+    } catch (error) {
+      console.error("Error joining team:", error);
+    } finally {
       setIsJoining(false);
-      // Show success message
-      alert("Request to join team sent!");
-    }, 1000);
+    }
   };
 
-  if (!team) {
+  // Handle leave team
+  const handleLeaveTeam = async () => {
+    if (!id || !currentUserId) return;
+
+    setIsLeaving(true);
+    
+    try {
+      const success = await leaveTeam(id, currentUserId);
+      
+      if (success) {
+        // Refresh team members data
+        queryClient.invalidateQueries({ queryKey: ['team-members', id] });
+        setIsCurrentUserMember(false);
+      }
+    } catch (error) {
+      console.error("Error leaving team:", error);
+    } finally {
+      setIsLeaving(false);
+    }
+  };
+
+  if (isTeamLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-[60vh]">
             <p className="text-lg text-muted-foreground">Loading team details...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (teamError || !team) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-center h-[60vh]">
+            <p className="text-lg text-muted-foreground mb-4">Team not found or error loading team details.</p>
+            <Button onClick={() => navigate("/teams")}>
+              Back to Teams
+            </Button>
           </div>
         </main>
       </div>
@@ -76,22 +167,29 @@ const TeamDetailsPage = () => {
             <h1 className="text-3xl font-bold">{team.name}</h1>
             
             <div className="flex gap-3">
-              <Link to="/profile">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  Contact
-                </Button>
-              </Link>
-              {team.isRecruiting && (
-                <Button 
-                  onClick={handleJoinTeam} 
-                  disabled={isJoining}
-                  size="sm"
-                  className="gap-2"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  {isJoining ? "Sending Request..." : "Join Team"}
-                </Button>
+              {currentUserId && (
+                isCurrentUserMember ? (
+                  <Button 
+                    onClick={handleLeaveTeam}
+                    disabled={isLeaving}
+                    size="sm"
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <UserMinus className="w-4 h-4" />
+                    {isLeaving ? "Leaving..." : "Leave Team"}
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleJoinTeam} 
+                    disabled={isJoining}
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    {isJoining ? "Joining..." : "Join Team"}
+                  </Button>
+                )
               )}
             </div>
           </div>
@@ -99,25 +197,12 @@ const TeamDetailsPage = () => {
           <div className="flex flex-wrap gap-2 mb-4">
             <Badge variant="secondary" className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              Founded: {team.createdAt}
+              Founded: {new Date(team.created_at).toLocaleDateString()}
             </Badge>
             <Badge variant="secondary" className="flex items-center gap-1">
               <Users className="w-3 h-3" />
-              {team.members} members
+              {members?.length || 0} members
             </Badge>
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Briefcase className="w-3 h-3" />
-              {team.category}
-            </Badge>
-            {team.isRecruiting ? (
-              <Badge variant="default" className="bg-green-500/10 text-green-500 border-green-500/20">
-                Recruiting
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-yellow-500 border-yellow-500/20">
-                Not Recruiting
-              </Badge>
-            )}
           </div>
           
           <p className="text-muted-foreground">{team.description}</p>
@@ -127,8 +212,8 @@ const TeamDetailsPage = () => {
         <Tabs defaultValue="overview" onValueChange={setActiveTab} className="mb-8">
           <TabsList className="mb-8">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="projects">Projects</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="projects">Projects</TabsTrigger>
           </TabsList>
           
           {/* Overview Tab */}
@@ -141,127 +226,64 @@ const TeamDetailsPage = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p>
-                    {team.name} is a team of passionate developers and designers from Rwanda Coding Academy.
-                    We focus on {team.category} projects, with an emphasis on building solutions that address
-                    local challenges and provide opportunities for learning and growth.
+                    {team.description || "No team description provided."}
                   </p>
                   
                   <div className="bg-card/50 p-4 rounded-lg border border-border">
                     <h3 className="text-sm font-medium mb-2">Team Details</h3>
                     <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div>
-                        <dt className="text-muted-foreground">Category</dt>
-                        <dd className="font-medium mt-1">{team.category}</dd>
+                        <dt className="text-muted-foreground">Created</dt>
+                        <dd className="font-medium mt-1">{new Date(team.created_at).toLocaleDateString()}</dd>
                       </div>
                       <div>
-                        <dt className="text-muted-foreground">Open Positions</dt>
-                        <dd className="font-medium mt-1">{team.openPositions}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-muted-foreground">Meeting Times</dt>
-                        <dd className="font-medium mt-1 flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {team.meetingTimes}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-muted-foreground">Founded</dt>
-                        <dd className="font-medium mt-1">{team.createdAt}</dd>
+                        <dt className="text-muted-foreground">Members</dt>
+                        <dd className="font-medium mt-1">{members?.length || 0}</dd>
                       </div>
                     </dl>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm font-medium mb-2">Resources & Links</h3>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="gap-2">
-                        <Github className="w-4 h-4" />
-                        GitHub
-                      </Button>
-                      <Button variant="outline" size="sm" className="gap-2">
-                        <ExternalLink className="w-4 h-4" />
-                        Team Website
-                      </Button>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
               
-              {/* Team Lead and Recent Activity */}
+              {/* Team Admins */}
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <h2 className="text-lg font-semibold">Team Lead</h2>
+                    <h2 className="text-lg font-semibold">Team Admins</h2>
                   </CardHeader>
                   <CardContent>
-                    {team.teamMembers && team.teamMembers.filter(member => member.role === "Team Leader").map(leader => (
-                      <div key={leader.id} className="flex items-center gap-4">
-                        <Avatar className="w-12 h-12 border border-white/10">
-                          <AvatarImage src={leader.avatar} alt={leader.name} />
-                          <AvatarFallback>{leader.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-medium">{leader.name}</h3>
-                          <p className="text-sm text-muted-foreground">{leader.role}</p>
+                    {isMembersLoading ? (
+                      <div className="animate-pulse space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-primary/10"></div>
+                          <div className="space-y-2">
+                            <div className="h-4 w-24 bg-primary/10 rounded"></div>
+                            <div className="h-3 w-16 bg-primary/5 rounded"></div>
+                          </div>
                         </div>
                       </div>
-                    ))}
+                    ) : members && members.filter(m => m.role === "admin").length > 0 ? (
+                      <div className="space-y-3">
+                        {members.filter(m => m.role === "admin").map(admin => (
+                          <div key={admin.id} className="flex items-center gap-4">
+                            <Avatar className="w-10 h-10 border border-white/10">
+                              <AvatarImage src={admin.profile?.avatar_url || undefined} />
+                              <AvatarFallback>
+                                {(admin.profile?.name || "User").charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h3 className="font-medium">{admin.profile?.name || "User"}</h3>
+                              <p className="text-sm text-muted-foreground">{admin.role}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">No team admins found.</p>
+                    )}
                   </CardContent>
                 </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <h2 className="text-lg font-semibold">Activity</h2>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex gap-3">
-                        <div className="w-1 bg-primary rounded-full" />
-                        <div>
-                          <p className="text-sm">Team completed project <span className="font-medium">RCA Student Portal</span></p>
-                          <p className="text-xs text-muted-foreground">2 days ago</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-3">
-                        <div className="w-1 bg-primary rounded-full" />
-                        <div>
-                          <p className="text-sm">New member <span className="font-medium">Marie Uwimana</span> joined</p>
-                          <p className="text-xs text-muted-foreground">1 week ago</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-3">
-                        <div className="w-1 bg-primary rounded-full" />
-                        <div>
-                          <p className="text-sm">Started new project <span className="font-medium">Alumni Tracking System</span></p>
-                          <p className="text-xs text-muted-foreground">2 weeks ago</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-          
-          {/* Projects Tab */}
-          <TabsContent value="projects">
-            <div className="mb-4">
-              <h2 className="text-2xl font-semibold mb-4">Team Projects</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {team.projects && team.projects.map(project => (
-                  <Card key={project.id} className="overflow-hidden hover:shadow-md transition-all">
-                    <CardHeader className="p-0">
-                      <img src={project.imageUrl} alt={project.title} className="w-full h-48 object-cover" />
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <h3 className="text-lg font-semibold mb-2">{project.title}</h3>
-                      <p className="text-muted-foreground text-sm mb-4">{project.description}</p>
-                    </CardContent>
-                    <CardFooter className="border-t bg-card/50 p-4">
-                      <Button variant="outline" className="w-full">View Details</Button>
-                    </CardFooter>
-                  </Card>
-                ))}
               </div>
             </div>
           </TabsContent>
@@ -271,57 +293,54 @@ const TeamDetailsPage = () => {
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-semibold">Team Members</h2>
-                {team.openPositions > 0 && (
-                  <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
-                    {team.openPositions} open positions
-                  </Badge>
-                )}
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {team.teamMembers && team.teamMembers.map(member => (
-                  <Card key={member.id} className="hover:shadow-md transition-all">
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <Avatar className="w-12 h-12 border border-white/10">
-                        <AvatarImage src={member.avatar} alt={member.name} />
-                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <h3 className="font-medium">{member.name}</h3>
-                        <p className="text-sm text-muted-foreground">{member.role}</p>
-                      </div>
-                      <Button variant="ghost" size="sm">View Profile</Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              
-              {team.openPositions > 0 && (
-                <div className="mt-8">
-                  <Separator className="mb-6" />
-                  <h3 className="text-lg font-semibold mb-4">Open Positions</h3>
-                  <div className="space-y-4">
-                    {Array.from({length: team.openPositions}).map((_, index) => (
-                      <Card key={index}>
-                        <CardContent className="p-4">
-                          <h4 className="font-medium mb-2">
-                            {index === 0 ? "Frontend Developer" : 
-                             index === 1 ? "Backend Developer" : "UI Designer"}
-                          </h4>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            {index === 0 ? "Looking for someone experienced with React and TypeScript." : 
-                             index === 1 ? "Need a developer familiar with Node.js and MongoDB." : 
-                             "Seeking someone with UI/UX design skills for our projects."}
-                          </p>
-                          <Button size="sm" onClick={handleJoinTeam} disabled={isJoining}>
-                            {isJoining ? "Applying..." : "Apply Now"}
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+              {isMembersLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[1, 2, 3, 4].map(i => (
+                    <Card key={i} className="hover:shadow-md transition-all">
+                      <CardContent className="p-4 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 animate-pulse"></div>
+                        <div className="flex-1 space-y-2 animate-pulse">
+                          <div className="h-4 bg-primary/10 rounded w-1/3"></div>
+                          <div className="h-3 bg-primary/5 rounded w-1/4"></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : members && members.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {members.map(member => (
+                    <Card key={member.id} className="hover:shadow-md transition-all">
+                      <CardContent className="p-4 flex items-center gap-4">
+                        <Avatar className="w-12 h-12 border border-white/10">
+                          <AvatarImage src={member.profile?.avatar_url || undefined} />
+                          <AvatarFallback>
+                            {(member.profile?.name || "User").charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <h3 className="font-medium">{member.profile?.name || "User"}</h3>
+                          <p className="text-sm text-muted-foreground">{member.role}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No members in this team yet.</p>
                 </div>
               )}
+            </div>
+          </TabsContent>
+          
+          {/* Projects Tab */}
+          <TabsContent value="projects">
+            <div className="text-center py-8">
+              <h2 className="text-xl font-semibold mb-2">Coming Soon</h2>
+              <p className="text-muted-foreground">Team projects feature is under development.</p>
             </div>
           </TabsContent>
         </Tabs>

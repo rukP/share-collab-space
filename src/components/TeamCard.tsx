@@ -10,23 +10,32 @@ interface TeamCardProps {
   description: string;
   members: number;
   openPositions: number;
+  createdAt?: string;
 }
 
-export const TeamCard = ({ id, name, description, members }: TeamCardProps) => {
+export const TeamCard = ({ id, name, description, members, openPositions, createdAt }: TeamCardProps) => {
   return (
-    <Card key={id} className="overflow-hidden hover:shadow-md transition-shadow">
+    <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <CardContent className="p-6">
         <h3 className="text-xl font-semibold mb-2">{name}</h3>
-        <p className="text-muted-foreground mb-4">{description}</p>
-        <div className="flex justify-between text-sm">
+        <p className="text-muted-foreground mb-4 line-clamp-2">{description}</p>
+        
+        <div className="flex justify-between items-center">
           <div className="flex items-center gap-1 text-muted-foreground">
             <Users className="w-4 h-4" />
-            {members} members
+            {members} {members === 1 ? "member" : "members"}
           </div>
+          
           <Link to={`/teams/${id}`}>
             <Button size="sm">View Team</Button>
           </Link>
         </div>
+        
+        {createdAt && (
+          <div className="text-xs text-muted-foreground mt-4">
+            Created: {new Date(createdAt).toLocaleDateString()}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

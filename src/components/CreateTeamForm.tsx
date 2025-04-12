@@ -7,9 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Users, Briefcase, Target, Plus, X, Tag, Calendar, Image 
+  Users, Briefcase, Target, Plus, X, Tag, Image 
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { createTeam, uploadTeamLogo } from "@/services/teamService";
+import { supabase } from "@/integrations/supabase/client";
 
 const CreateTeamForm = () => {
   const [name, setName] = useState("");
@@ -21,11 +24,14 @@ const CreateTeamForm = () => {
   const [currentTag, setCurrentTag] = useState("");
   const [openPositions, setOpenPositions] = useState<string[]>([]);
   const [currentPosition, setCurrentPosition] = useState("");
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setUploadedImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -38,6 +44,7 @@ const CreateTeamForm = () => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("image/")) {
+      setUploadedImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -48,6 +55,7 @@ const CreateTeamForm = () => {
 
   const clearImage = () => {
     setImagePreview(null);
+    setUploadedImage(null);
   };
 
   const addTag = () => {
@@ -72,20 +80,53 @@ const CreateTeamForm = () => {
     setOpenPositions(openPositions.filter(position => position !== positionToRemove));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      toast({
-        title: "Team Created",
-        description: "Your team has been successfully created.",
-      });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
       
-      // Reset form or redirect (in a real app)
-    }, 1500);
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to create a team",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Upload image if provided
+      let logoUrl = null;
+      if (uploadedImage) {
+        logoUrl = await uploadTeamLogo(user.id, uploadedImage);
+      }
+      
+      // Create the team
+      const fullDescription = `${purpose}\n\n${description}`;
+      const team = await createTeam(name, fullDescription, logoUrl);
+      
+      if (team) {
+        toast({
+          title: "Team Created",
+          description: "Your team has been successfully created.",
+        });
+        
+        // Navigate to the team details page
+        navigate(`/teams/${team.id}`);
+      } else {
+        setIsSubmitting(false);
+      }
+    } catch (error) {
+      console.error("Error creating team:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create team. Please try again.",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+    }
   };
 
   return (
