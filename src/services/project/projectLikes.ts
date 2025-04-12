@@ -79,7 +79,7 @@ export const likeProject = async (projectId: string): Promise<boolean> => {
  * Helper function to call like-related functions in Supabase
  */
 const callLikeFunction = async (
-  functionName: RpcFunctionName,
+  functionName: 'increment_likes' | 'decrement_likes',
   projectId: string
 ): Promise<void> => {
   try {
