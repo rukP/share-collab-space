@@ -18,24 +18,7 @@ export const uploadProjectImage = async (
     const fileName = `${userId}-${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    // Check if the projects bucket exists, if not create it
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const projectsBucketExists = buckets?.some(bucket => bucket.name === 'projects');
-    
-    if (!projectsBucketExists) {
-      console.log("Creating projects bucket");
-      const { error: createBucketError } = await supabase.storage.createBucket('projects', {
-        public: true,
-        fileSizeLimit: 10485760, // 10MB
-      });
-      
-      if (createBucketError) {
-        console.error("Error creating projects bucket:", createBucketError);
-        throw createBucketError;
-      }
-    }
-
-    // Upload the file to the projects bucket
+    // Upload the file to the projects bucket (bucket already exists from the SQL migration)
     const { error: uploadError } = await supabase.storage
       .from('projects')
       .upload(filePath, file, {

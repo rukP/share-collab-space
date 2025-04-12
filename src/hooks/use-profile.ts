@@ -57,46 +57,48 @@ export const useProfile = () => {
     enabled: !!profileQuery.data,
   });
 
-  // Fetch user's teams
+  // Fetch user's teams - using the security definer function to avoid infinite recursion
   const teamsQuery = useQuery({
     queryKey: ['userTeams'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       
-      // Get teams where user is a member
-      const { data: memberData, error: memberError } = await supabase
-        .from('team_members')
-        .select('team_id')
-        .eq('user_id', user.id);
+      try {
+        // Use direct query without joins to prevent infinite recursion
+        const { data: teamIds, error: teamIdsError } = await supabase
+          .rpc('get_user_team_ids', { user_id: user.id });
+          
+        if (teamIdsError) {
+          console.error("Error fetching team IDs:", teamIdsError);
+          return [];
+        }
         
-      if (memberError) {
-        console.error("Error fetching team memberships:", memberError);
+        if (!teamIds?.length) return [];
+        
+        // Get team details
+        const { data, error } = await supabase
+          .from('teams')
+          .select('id, name, description, created_at')
+          .in('id', teamIds);
+          
+        if (error) {
+          console.error("Error fetching teams:", error);
+          return [];
+        }
+        
+        return data.map(team => ({
+          id: team.id,
+          name: team.name,
+          description: team.description,
+          members: 0, // Could fetch this with a separate query if needed
+          openPositions: 0, // Could fetch this with a separate query if needed
+          createdAt: team.created_at,
+        }));
+      } catch (error) {
+        console.error("Error in teamsQuery:", error);
         return [];
       }
-      
-      if (!memberData.length) return [];
-      
-      // Get team details
-      const teamIds = memberData.map(membership => membership.team_id);
-      const { data, error } = await supabase
-        .from('teams')
-        .select('id, name, description, created_at')
-        .in('id', teamIds);
-        
-      if (error) {
-        console.error("Error fetching teams:", error);
-        return [];
-      }
-      
-      return data.map(team => ({
-        id: team.id,
-        name: team.name,
-        description: team.description,
-        members: 0, // Could fetch this with a separate query if needed
-        openPositions: 0, // Could fetch this with a separate query if needed
-        createdAt: team.created_at,
-      }));
     },
     enabled: !!profileQuery.data,
   });

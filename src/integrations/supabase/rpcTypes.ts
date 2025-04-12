@@ -4,7 +4,6 @@
 export type RpcFunctionName = 'increment_likes' | 'decrement_likes';
 
 export interface RpcParams {
-  'increment_likes': { project_id: string };
-  'decrement_likes': { project_id: string };
+  'increment_likes': { p_project_id: string };
+  'decrement_likes': { p_project_id: string };
 }
-
