@@ -165,13 +165,15 @@ export const createTeam = async (name: string, description: string, logoUrl?: st
     }
 
     // Make the creator an admin of the team
-    const { error: memberError } = await supabase.from("team_members").insert([
-      {
-        team_id: data.id,
-        user_id: user.id,
-        role: "admin",
-      },
-    ]);
+    const { error: memberError } = await supabase
+      .from("team_members")
+      .insert([
+        {
+          team_id: data.id,
+          user_id: user.id,
+          role: "admin",
+        },
+      ]);
 
     if (memberError) {
       throw memberError;
