@@ -249,9 +249,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decrement_likes: {
+        Args: { p_project_id: string }
+        Returns: undefined
+      }
       get_user_team_ids: {
         Args: { user_id: string }
         Returns: string[]
+      }
+      increment_likes: {
+        Args: { p_project_id: string }
+        Returns: undefined
+      }
+      is_team_member: {
+        Args: { team_id: string; user_id: string }
+        Returns: boolean
       }
     }
     Enums: {

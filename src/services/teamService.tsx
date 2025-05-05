@@ -56,7 +56,7 @@ export const getTeamById = async (id: string): Promise<Team | null> => {
       .from("teams")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw error;
@@ -141,7 +141,7 @@ export const joinTeam = async (teamId: string, userId: string, role: string = "m
 };
 
 // Helper function to create a team
-export const createTeam = async (name: string, description: string, logoUrl?: string): Promise<Team | null> => {
+export const createTeam = async (name: string, description: string, logoUrl?: string | null): Promise<Team | null> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -206,8 +206,8 @@ export const uploadTeamLogo = async (
     const fileName = `team-logo-${userId}-${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    // Upload the file to the projects bucket (bucket already exists from the SQL migration)
-    const { error: uploadError } = await supabase.storage
+    // Upload the file to the teams bucket (created in SQL migration)
+    const { error: uploadError, data } = await supabase.storage
       .from('teams')
       .upload(filePath, file, {
         cacheControl: '3600',
