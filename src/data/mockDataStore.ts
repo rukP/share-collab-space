@@ -1,5 +1,6 @@
 
 import { MOCK_PROJECTS, MOCK_TEAMS, MOCK_USERS, MOCK_REQUESTS } from "./mockData";
+import { User, Session } from "@supabase/supabase-js";
 
 // Extended mock data
 export const mockTeamMembers = [
@@ -82,11 +83,23 @@ export const mockProfiles = [
   }
 ];
 
-// Mock Teams with converted IDs to string
+// Mock Teams with structure matching Team type
 export const mockTeams = MOCK_TEAMS.map(team => ({
-  ...team,
   id: String(team.id),
-  createdAt: new Date(team.createdAt).toISOString()
+  name: team.name,
+  description: team.description || null,
+  logo_url: null,
+  created_at: new Date(team.createdAt).toISOString(),
+  updated_at: new Date(team.createdAt).toISOString(),
+  // Additional properties for UI display (not in the Team type)
+  members: team.members,
+  openPositions: team.openPositions,
+  category: team.category,
+  meetingTimes: team.meetingTimes,
+  isRecruiting: team.isRecruiting,
+  teamLeader: team.teamLeader,
+  teamMembers: team.teamMembers,
+  projects: team.projects
 }));
 
 // Mock Projects with converted IDs to string
@@ -102,11 +115,30 @@ export const mockProjects = MOCK_PROJECTS.map(project => ({
   updated_at: new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28)).toISOString()
 }));
 
-// Mock authentication
-export const mockCurrentUser = {
+// Mock user with Supabase User structure
+export const mockCurrentUser: User = {
   id: "1",
   email: "user@example.com",
-  created_at: new Date().toISOString()
+  created_at: new Date().toISOString(),
+  app_metadata: {
+    provider: "email",
+    providers: ["email"]
+  },
+  user_metadata: {
+    name: "Grace Ishimwe"
+  },
+  aud: "authenticated",
+  role: ""
+};
+
+// Mock session object with Supabase Session structure
+const mockSessionObject: Session = {
+  access_token: "mock-access-token",
+  refresh_token: "mock-refresh-token",
+  expires_in: 3600,
+  expires_at: new Date().getTime() + 3600000,
+  token_type: "bearer",
+  user: mockCurrentUser
 };
 
 // Mock authentication functions
@@ -114,7 +146,7 @@ export const mockAuth = {
   isAuthenticated: true,
   isLoading: false,
   user: mockCurrentUser,
-  session: { user: mockCurrentUser },
+  session: mockSessionObject,
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null }),
   signOut: async () => {},
