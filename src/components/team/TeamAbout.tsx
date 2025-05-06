@@ -2,6 +2,8 @@
 import { Team, TeamMember } from "@/services/teamService";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TeamAdminsList } from "./TeamAdminsList";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Users } from "lucide-react";
 
 interface TeamAboutProps {
   team: Team;
@@ -10,6 +12,13 @@ interface TeamAboutProps {
 }
 
 export const TeamAbout = ({ team, members, isLoading }: TeamAboutProps) => {
+  // Calculate creation date in a more readable format
+  const formattedCreationDate = new Date(team.created_at).toLocaleDateString(undefined, { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       {/* Team Information */}
@@ -17,23 +26,27 @@ export const TeamAbout = ({ team, members, isLoading }: TeamAboutProps) => {
         <CardHeader>
           <h2 className="text-xl font-semibold">About the Team</h2>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p>
+        <CardContent className="space-y-6">
+          <p className="text-base leading-relaxed">
             {team.description || "No team description provided."}
           </p>
           
-          <div className="bg-card/50 p-4 rounded-lg border border-border">
-            <h3 className="text-sm font-medium mb-2">Team Details</h3>
-            <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="flex flex-wrap gap-4">
+            <div className="bg-card/60 p-4 rounded-lg border border-border flex items-center gap-3">
+              <Calendar className="w-5 h-5 text-primary/70" />
               <div>
-                <dt className="text-muted-foreground">Created</dt>
-                <dd className="font-medium mt-1">{new Date(team.created_at).toLocaleDateString()}</dd>
+                <p className="text-sm font-medium text-muted-foreground">Founded</p>
+                <p className="font-medium">{formattedCreationDate}</p>
               </div>
+            </div>
+            
+            <div className="bg-card/60 p-4 rounded-lg border border-border flex items-center gap-3">
+              <Users className="w-5 h-5 text-primary/70" />
               <div>
-                <dt className="text-muted-foreground">Members</dt>
-                <dd className="font-medium mt-1">{members?.length || 0}</dd>
+                <p className="text-sm font-medium text-muted-foreground">Team Size</p>
+                <p className="font-medium">{members?.length || 0} members</p>
               </div>
-            </dl>
+            </div>
           </div>
         </CardContent>
       </Card>
