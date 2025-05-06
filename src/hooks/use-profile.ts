@@ -30,7 +30,7 @@ export const useProfile = () => {
       description: team.description || 'No description provided',
       members: team.members,
       openPositions: team.openPositions,
-      createdAt: team.created_at // Changed from createdAt to created_at to match the property name in mockTeams
+      createdAt: team.created_at // Changed from createdAt to match the property name in mockTeams
     }))
   );
   const [isTeamsLoading] = useState(false);
