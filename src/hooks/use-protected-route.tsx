@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { mockCurrentUser } from "@/data/mockDataStore";
 
 export const useProtectedRoute = () => {
   const navigate = useNavigate();
@@ -11,15 +11,8 @@ export const useProtectedRoute = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
-        const session = data.session;
-
-        if (!session) {
-          navigate("/auth", { replace: true });
-          return;
-        }
-
-        setUserId(session.user.id);
+        // Using mock authentication - always consider user as authenticated
+        setUserId(mockCurrentUser.id);
       } catch (error) {
         console.error("Auth error:", error);
         navigate("/auth", { replace: true });

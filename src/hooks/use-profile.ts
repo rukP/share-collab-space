@@ -1,155 +1,59 @@
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Profile, getCurrentProfile } from "@/services/profileService";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { mockProfiles, mockProjects, mockTeams } from "@/data/mockDataStore";
 
 export const useProfile = () => {
-  const queryClient = useQueryClient();
+  // Use the first mock profile as the current user's profile
+  const [profile] = useState(mockProfiles[0]);
+  const [isProfileLoading] = useState(false);
   
-  // Set up auth state listener to invalidate queries when auth changes
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-      queryClient.invalidateQueries({ queryKey: ['userProjects'] });
-      queryClient.invalidateQueries({ queryKey: ['userTeams'] });
-    });
-
-    return () => subscription.unsubscribe();
-  }, [queryClient]);
-
-  // Fetch user profile data
-  const profileQuery = useQuery({
-    queryKey: ['profile'],
-    queryFn: getCurrentProfile,
-  });
-
-  // Fetch user's projects
-  const projectsQuery = useQuery({
-    queryKey: ['userProjects'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-      
-      // Get projects where user is on the team
-      const { data, error } = await supabase
-        .from('projects')
-        .select('id, title, description, image_url, likes, status, created_at, team_id')
-        .eq('team_id', user.id)
-        .order('created_at', { ascending: false });
-        
-      if (error) {
-        console.error("Error fetching projects:", error);
-        return [];
-      }
-      
-      return data.map(project => ({
-        id: project.id,
-        title: project.title,
-        description: project.description,
-        imageUrl: project.image_url || "https://picsum.photos/seed/project/800/600",
-        likes: project.likes || 0,
-        author: profileQuery.data?.name || 'User',
-        status: project.status as "open" | "closed" | "completed",
-        createdAt: project.created_at
-      }));
-    },
-    enabled: !!profileQuery.data,
-  });
-
-  // Fetch user's teams 
-  const teamsQuery = useQuery({
-    queryKey: ['userTeams'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-      
-      try {
-        // Get team IDs directly from team_members table
-        const { data: teamMembers, error: teamMembersError } = await supabase
-          .from('team_members')
-          .select('team_id')
-          .eq('user_id', user.id);
-          
-        if (teamMembersError) {
-          console.error("Error fetching team members:", teamMembersError);
-          return [];
-        }
-        
-        if (!teamMembers?.length) return [];
-        
-        const teamIds = teamMembers.map(tm => tm.team_id);
-        
-        // Get team details
-        const { data, error } = await supabase
-          .from('teams')
-          .select('id, name, description, created_at')
-          .in('id', teamIds);
-          
-        if (error) {
-          console.error("Error fetching teams:", error);
-          return [];
-        }
-        
-        // For each team, count the number of members
-        const teamsWithMemberCounts = await Promise.all(data.map(async team => {
-          const { count, error: countError } = await supabase
-            .from('team_members')
-            .select('*', { count: 'exact', head: true })
-            .eq('team_id', team.id);
-            
-          if (countError) {
-            console.error("Error counting team members:", countError);
-            return {
-              id: team.id,
-              name: team.name,
-              description: team.description || 'No description provided',
-              members: 0,
-              openPositions: 0,
-              createdAt: team.created_at,
-            };
-          }
-          
-          return {
-            id: team.id,
-            name: team.name,
-            description: team.description || 'No description provided',
-            members: count || 0,
-            openPositions: 0, // This could be fetched from another table if you implement it
-            createdAt: team.created_at,
-          };
-        }));
-        
-        return teamsWithMemberCounts;
-      } catch (error) {
-        console.error("Error in teamsQuery:", error);
-        return [];
-      }
-    },
-    enabled: !!profileQuery.data,
-  });
+  // Filter projects for the current user (using profile.id)
+  const [projects] = useState(
+    mockProjects.map(project => ({
+      id: project.id,
+      title: project.title,
+      description: project.description || "",
+      imageUrl: project.image_url || "https://picsum.photos/seed/project/800/600",
+      likes: project.likes || 0,
+      author: profile?.name || 'User',
+      status: project.status as "open" | "closed" | "completed",
+      createdAt: project.created_at
+    }))
+  );
+  const [isProjectsLoading] = useState(false);
+  
+  // Get teams for the current user
+  const [teams] = useState(
+    mockTeams.map(team => ({
+      id: String(team.id),
+      name: team.name,
+      description: team.description || 'No description provided',
+      members: team.members,
+      openPositions: team.openPositions,
+      createdAt: new Date(team.createdAt).toISOString(),
+    }))
+  );
+  const [isTeamsLoading] = useState(false);
 
   // Check if the profile is incomplete
-  const isProfileIncomplete = !profileQuery.data || 
-    !profileQuery.data.name || 
-    !profileQuery.data.course || 
-    !profileQuery.data.bio || 
-    !profileQuery.data.avatar_url;
+  const isProfileIncomplete = !profile || 
+    !profile.name || 
+    !profile.course || 
+    !profile.bio || 
+    !profile.avatar_url;
 
-  // Provide method to refresh profile data
+  // Provide method to refresh profile data (no-op in mock version)
   const refreshProfile = () => {
-    queryClient.invalidateQueries({ queryKey: ['profile'] });
-    queryClient.invalidateQueries({ queryKey: ['userProjects'] });
-    queryClient.invalidateQueries({ queryKey: ['userTeams'] });
+    console.log('Mock refresh profile');
   };
 
   return {
-    profile: profileQuery.data,
-    isProfileLoading: profileQuery.isLoading,
-    projects: projectsQuery.data || [],
-    isProjectsLoading: projectsQuery.isLoading,
-    teams: teamsQuery.data || [],
-    isTeamsLoading: teamsQuery.isLoading,
+    profile,
+    isProfileLoading,
+    projects,
+    isProjectsLoading,
+    teams,
+    isTeamsLoading,
     isProfileIncomplete,
     refreshProfile
   };

@@ -1,39 +1,27 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { mockAuth } from "@/data/mockDataStore";
 
-// Create a reusable API client to centralize request handling
+// Create a dummy API client to replace the real one
 const apiClient = {
-  // Generic fetch method with proper error handling
+  // Generic fetch method that returns mock data
   async fetch<T>(path: string, options?: RequestInit): Promise<T> {
-    try {
-      const response = await fetch(path, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers,
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error(`API request failed: ${path}`, error);
-      throw error;
-    }
+    console.log(`Mock API Request: ${path}`, options);
+    
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Return empty object as mock response
+    return {} as T;
   },
 
-  // Helper to get current user session
+  // Helper to get current user session (using mock auth)
   async getSession() {
-    return await supabase.auth.getSession();
+    return { data: { session: mockAuth.session } };
   },
 
   // Helper to check if user is authenticated
   async isAuthenticated(): Promise<boolean> {
-    const { data } = await this.getSession();
-    return !!data.session;
+    return true; // Always authenticated in mock mode
   }
 };
 

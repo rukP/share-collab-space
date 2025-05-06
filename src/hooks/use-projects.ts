@@ -1,10 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getProjects, getProjectById } from "@/services/project/getProjects";
-import { createProject } from "@/services/project/createProject";
-import { likeProject } from "@/services/project/projectLikes";
-import { submitJoinRequest } from "@/services/project/joinRequests";
-import { Project } from "@/services/project/types";
+import { mockProjects, mockLikes } from "@/data/mockDataStore";
+import { projectService } from "@/services/mockServices";
 
 export const projectKeys = {
   all: ['projects'] as const,
@@ -18,7 +15,7 @@ export const projectKeys = {
 export function useProjects() {
   return useQuery({
     queryKey: projectKeys.lists(),
-    queryFn: getProjects,
+    queryFn: projectService.getProjects,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
@@ -27,7 +24,7 @@ export function useProjects() {
 export function useProject(id: string) {
   return useQuery({
     queryKey: projectKeys.detail(id),
-    queryFn: () => getProjectById(id),
+    queryFn: () => projectService.getProjectById(id),
     staleTime: 1000 * 60 * 2, // 2 minutes
     enabled: !!id,
   });
@@ -48,7 +45,7 @@ export function useCreateProject() {
       description: string;
       teamId: string;
       imageUrl?: string;
-    }) => createProject(title, description, teamId, imageUrl),
+    }) => projectService.createProject(title, description, teamId, imageUrl),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
     },
@@ -60,7 +57,7 @@ export function useLikeProject() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (projectId: string) => likeProject(projectId),
+    mutationFn: (projectId: string) => projectService.likeProject(projectId),
     onSuccess: (_, projectId) => {
       queryClient.invalidateQueries({ queryKey: projectKeys.detail(projectId) });
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
@@ -77,6 +74,6 @@ export function useSubmitJoinRequest() {
     }: {
       projectId: string;
       message: string;
-    }) => submitJoinRequest(projectId, message),
+    }) => projectService.submitJoinRequest(projectId, message),
   });
 }

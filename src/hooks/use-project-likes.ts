@@ -1,7 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { likeProject } from "@/services/project/projectLikes";
-import { getProjectLikeStatus } from "@/services/project/getLikes";
+import { projectService } from "@/services/mockServices";
 
 // Query key for project likes
 const projectLikesKeys = {
@@ -13,7 +12,7 @@ const projectLikesKeys = {
 export function useProjectLikes(projectId: string) {
   return useQuery({
     queryKey: projectLikesKeys.detail(projectId),
-    queryFn: () => getProjectLikeStatus(projectId),
+    queryFn: () => projectService.getProjectLikeStatus(projectId),
     enabled: !!projectId,
   });
 }
@@ -23,7 +22,7 @@ export function useToggleProjectLike() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (projectId: string) => likeProject(projectId),
+    mutationFn: (projectId: string) => projectService.likeProject(projectId),
     // Optimistically update the UI
     onMutate: async (projectId) => {
       // Cancel any outgoing refetches
