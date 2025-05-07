@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { ProjectActions } from "@/components/project/ProjectActions";
 
 interface ProjectCardProps {
-  id: string | number;
+  id: number;
   title: string;
   description: string;
   imageUrl: string;

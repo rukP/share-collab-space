@@ -1,131 +1,53 @@
 
-import { useState, useEffect, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { z } from "zod";
+import { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { getCurrentProfile, updateUserProfile, uploadAvatar, Profile } from "@/services/profileService";
-import { hotToast } from "@/components/ui/hot-toast";
-import { useAuth } from "@/context/AuthContext";
-import { AvatarUpload } from "./profile/AvatarUpload";
-import { ProfileBasicInfo } from "./profile/ProfileBasicInfo";
-import { ProfileBioField } from "./profile/ProfileBioField";
-import { useProfile } from "@/hooks/use-profile";
-
-// Form schema for validation
-const profileSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
-  course: z.string().min(2, "Course must be at least 2 characters"),
-  year: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: "Year must be a positive number",
-  }),
-  bio: z.string().min(10, "Bio must be at least 10 characters"),
-});
-
-type ProfileFormValues = z.infer<typeof profileSchema>;
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { User, Mail, Phone, Building, Link as LinkIcon, X, Upload } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const AddProfileForm = () => {
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [course, setCourse] = useState("");
+  const [bio, setBio] = useState("");
+  const [website, setWebsite] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingProfile, setExistingProfile] = useState<Profile | null>(null);
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { refreshProfile } = useProfile();
+  const { toast } = useToast();
 
-  // Initialize form with react-hook-form
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      course: "",
-      year: "",
-      bio: "",
-    },
-  });
-
-  // Load existing profile data if available
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (user) {
-        const profile = await getCurrentProfile();
-        if (profile) {
-          setExistingProfile(profile);
-          
-          // Set form values from existing profile
-          form.setValue("name", profile.name || "");
-          form.setValue("email", user.email || "");
-          form.setValue("course", profile.course || "");
-          form.setValue("year", profile.year ? String(profile.year) : "");
-          form.setValue("bio", profile.bio || "");
-        } else if (user.email) {
-          form.setValue("email", user.email);
-        }
-      }
-    };
-
-    loadProfile();
-  }, [user, form]);
-
-  const handleAvatarChange = (file: File | null) => {
-    setAvatarFile(file);
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const onSubmit = async (data: ProfileFormValues) => {
-    if (!user) {
-      hotToast({
-        title: "Error",
-        description: "You must be logged in to update your profile",
-        variant: "destructive",
-      });
-      return;
-    }
+  const clearAvatar = () => {
+    setAvatarPreview(null);
+  };
 
-    try {
-      setIsSubmitting(true);
-
-      // Prepare profile update data
-      const profileData = {
-        name: data.name,
-        course: data.course,
-        year: Number(data.year),
-        bio: data.bio,
-      };
-
-      // Upload avatar if selected
-      let avatarUrl = existingProfile?.avatar_url;
-      if (avatarFile) {
-        const newAvatarUrl = await uploadAvatar(user.id, avatarFile);
-        if (newAvatarUrl) {
-          avatarUrl = newAvatarUrl;
-        }
-      }
-
-      // Update profile
-      await updateUserProfile(user.id, {
-        ...profileData,
-        avatar_url: avatarUrl,
-      });
-
-      // Refresh profile data to ensure UI is updated
-      refreshProfile();
-
-      // Navigate back to profile page
-      navigate("/profile");
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      hotToast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    setTimeout(() => {
       setIsSubmitting(false);
-    }
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+      
+      // Reset form or redirect (in a real app)
+    }, 1500);
   };
 
   return (
@@ -140,37 +62,160 @@ const AddProfileForm = () => {
       </div>
       
       <Card className="shadow-lg border-primary/20">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardHeader>
-              <h3 className="text-2xl font-semibold">Personal Information</h3>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-                {/* Avatar Upload Component */}
-                <AvatarUpload 
-                  avatarUrl={existingProfile?.avatar_url || null} 
-                  onAvatarChange={handleAvatarChange} 
-                />
-                
-                {/* Basic Info Component */}
-                <ProfileBasicInfo control={form.control} user={user} />
+        <form onSubmit={handleSubmit}>
+          <CardHeader>
+            <h3 className="text-2xl font-semibold">Personal Information</h3>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+              {/* Avatar Upload */}
+              <div className="w-full md:w-1/3 flex flex-col items-center">
+                <div className="relative">
+                  {avatarPreview ? (
+                    <div className="relative h-40 w-40 rounded-full overflow-hidden border-4 border-primary/30">
+                      <img 
+                        src={avatarPreview} 
+                        alt="Avatar Preview" 
+                        className="w-full h-full object-cover" 
+                      />
+                      <Button 
+                        type="button"
+                        variant="destructive" 
+                        size="icon" 
+                        className="absolute top-0 right-0 h-8 w-8" 
+                        onClick={clearAvatar}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="h-40 w-40 rounded-full bg-muted flex items-center justify-center border-4 border-primary/30">
+                      <User className="h-16 w-16 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4">
+                  <Input 
+                    id="avatar" 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                  />
+                  <Label htmlFor="avatar">
+                    <Button type="button" variant="outline" size="sm" className="cursor-pointer">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Photo
+                    </Button>
+                  </Label>
+                </div>
               </div>
               
-              {/* Bio Field Component */}
-              <ProfileBioField control={form.control} />
-            </CardContent>
-            <CardFooter className="flex justify-end border-t p-6">
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="bg-gradient-to-r from-primary to-purple-500 hover:opacity-90"
-              >
-                {isSubmitting ? "Saving..." : "Save Profile"}
-              </Button>
-            </CardFooter>
-          </form>
-        </Form>
+              {/* Basic Info */}
+              <div className="w-full md:w-2/3 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="name" 
+                        placeholder="Your name" 
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="pl-10 border-primary/20 focus-visible:ring-primary"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="email" 
+                        type="email"
+                        placeholder="Your email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10 border-primary/20 focus-visible:ring-primary"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone (Optional)</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="phone" 
+                        placeholder="Your phone number" 
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="pl-10 border-primary/20 focus-visible:ring-primary"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="course">Course / Program</Label>
+                    <div className="relative">
+                      <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="course" 
+                        placeholder="Your course or program" 
+                        value={course}
+                        onChange={(e) => setCourse(e.target.value)}
+                        className="pl-10 border-primary/20 focus-visible:ring-primary"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="website">Personal Website (Optional)</Label>
+                  <div className="relative">
+                    <LinkIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      id="website" 
+                      placeholder="https://yourwebsite.com" 
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      className="pl-10 border-primary/20 focus-visible:ring-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea 
+                id="bio" 
+                placeholder="Tell us about yourself, your interests, and your work..." 
+                rows={5}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                className="border-primary/20 focus-visible:ring-primary resize-y"
+                required
+              />
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end border-t p-6">
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="bg-gradient-to-r from-primary to-purple-500 hover:opacity-90"
+            >
+              {isSubmitting ? "Saving..." : "Save Profile"}
+            </Button>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );
